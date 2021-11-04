@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="../static/jquery-1.12.4.min.js"></script>
+    <title>Title</title>
+</head>
+<body>
+<p onclick="send_ajax()">点击发送</p>
+<script>
+    function send_ajax() {
+        $.ajax({
+            url: '',
+            data: JSON.stringify({username: 'yeze', pwd: '123'}),//把字符串格式书转化成json格式
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (data) {
+                alert('successful')
+            }
+        })
+    }
+</script>
+
+</body>
+</html>
