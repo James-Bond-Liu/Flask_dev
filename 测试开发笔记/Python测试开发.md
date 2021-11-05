@@ -3381,87 +3381,62 @@ if __name__ == '__main__':
 
 获取前端传过来的请求数据时后端服务来管理的，Flask内置request来管理。使用from flask import request 导入
 
-get请求：request.args，类型是ImmutableMuitiDict不可变字典，可以选择通过to_dict()转化为普通的可变字典
+#### 1、request的参数
 
+* request.method：保存前端的请求方式
 
-
-post请求：request.form
-
-
-
-json数据：request.json，前提请求头为application/json
-
-
-
-get_json()，可以强制转化=
-
-
+* request.form：form表单中传递过来的值，使用request.form中拿到（post）
+* request.args：保存的是url中传递的参数（get）
+* request.args与request.form的区别就是：
+  * request.args是获取url中的参数，request.form是获取form表单中的参数
+* request.json：保存请求头为application/json格式的数据（post、put）
 
 **其他参数**
 
-values：类型CombinedMultiDict，内容是form和args。可以使用values替代form和args
 
 
+* request.values：类型CombinedMultiDict，同时存储formdata数据和URL中的数据
 
-cookies：请求的cookies，类型时dict
+* request.cookies：存在浏览器端的字符串一起带过来，前提是要开启浏览器中的cookies，类型是dict
 
+* stream：在可知的mimetype下，如果进来的表单数据无法解码，会没有任何改动的保存到这个stream以供使用。很多时候，当请求的数据转换为string时，使用data是最好的方式。这个stream值返回数据一次。
 
+* request.headres ：用来获取本次请求的请求头，字典类型
 
-stream：在可知的mimetype下，如果进来的表单数据无法解码，会没有任何改动的保存到这个stream以供使用。很多时候，当请求的数据转换为string时，使用data是最好的方式。这个stream值返回数据一次。
+* request.data： 如果数据类型是flask无法处理的mime type，flask就会将数据变成字符串存在data里
 
+* request.files：文件上传的功能，里面存的是上传的文件。通过post或put请求上传的文件
 
+  ~~~html
+  <!--发起文件上传的前端页面-->
+  <form action="/req" method="post" enctype="multipart/form-data">
+      <input type="file" name="demo">
+      <input type="submit">
+  </form>
+  ~~~
 
-headers：请求头，字典类型
+  
 
+  ~~~python
+  # 后端写法
+  print(request.files)  # ImmutableMultiDict([('file', <FileStorage: 'DragonFire.txt' ('text/plain')>)])
+  print(request.files["demo"])  # <FileStorage: 'DragonFire.txt' ('text/plain')>
+  my_file = request.files["demo"]
+  my_file.save("OldBoyEDU.txt")  # 保存文件,里面可以写完整路径+文件名
+  ~~~
 
-
-data：包含了请求的数据，并转换为字符串，除非是一个flask无法处理的mimetype
-
-
-
-files：MultDict，带有通过post或put请求上传的文件
-
-
-
-environ：wsgi隐含的环境配置
-
-
-
-method：remote_addr:远程IP，可以限制IP的行为
-
-
-
-user-agent：提供反扒和恶意攻击
-
-
-
-
-
-
-
-
-
-
-
-get请求的数据：get_data=request.args
-
-post请求form表单数据：request.form
-
-json数据：request.json
-
-file文件数据：request.files
+* remote_addr：获取远程IP，可以限制IP的行为
+* user-agent：提供反扒和恶意攻击
+* 通过request获取请求路径：
+  * 获取当前的url路径request.path	# /req
+  * 当前url路径的上一级路径 request.script_root	 #
+  * 当前url的全部路径  request.url 	# http://127.0.0.1:5000/req
+  * 当前url的路径的上一级全部路径  request.url_root  	# http://127.0.0.1:5000/
+* request.environ：wsgi隐含的环境配置，requset下的所有属性都是从这个属性中封装出来的。
 
 
 
 
 
 
-
-
-
-
-
-
-
-![image-20211105081126202](Python测试开发.assets/image-20211105081126202.png)
 
