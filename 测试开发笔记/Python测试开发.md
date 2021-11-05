@@ -3585,18 +3585,20 @@ def load(filename):
 
 ##### 1、直接return返回
 
-第一直接return返回响应内容、状态码、响应头信息。手动修改响应状态码和媒体类型。
+第一直接return返回响应内容、状态码、响应头信息。注意顺序不能变。
 
 ~~~python
 @app.route('/')
 def register():
     return 'hello world',201,{'content-type':'text/plain','server':'测试开发'}
-			响应内容	  状态码  			响应头相关的信息
+			响应内容	  状态码  			响应头相关的信息  
 ~~~
 
 注意：响应内容是必须返回的，状态码和响应头可以任意指定或者不指定。
 
 ##### 2、利用make_response来构造响应
+
+make_response(响应数据， 响应状态码， 响应头)。位置参数的顺序不能错。
 
 **make_response有两种方式构造**
 
@@ -3614,6 +3616,15 @@ b = make_response(a,	201,	headers={'x':'wofo'})
 
 
 * 第二种，先定义再初始化构造make_response对象
+
+  Response中的几个常见属性
+
+  1. headers：请求头相关
+  2. status : String类型的数据，格式例如：“200 ok”
+  3. status_code : int 类型，状态码，不能是自定义的状态码
+  4. data : 需要返回到前端的数据
+  5. set_cookie() ：设置cookie 的值
+  6. del_cookie() ：删除cookie
 
 ~~~python
 a = json.dumps({'user':'yeze'})
