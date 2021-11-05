@@ -3440,3 +3440,147 @@ if __name__ == '__main__':
 
 
 
+### 二、响应
+
+如果不进行任何设置，返回字符串浏览器会在自动把它变成HTML
+
+#### 1、主要的响应类型content-type
+
+响应的content-type体现的响应头中:	文本 -- text/plain	html -- text/html	xml -- application/xml	json -- application/json
+
+
+
+#### 2、构造响应的两种方式
+
+##### 1、直接return返回
+
+第一直接return返回响应内容、状态码、响应头信息。手动修改响应状态码和媒体类型。
+
+~~~python
+@app.route('/')
+def register():
+    return 'hello world',201,{'content-type':'text/plain','server':'测试开发'}
+			响应内容	  状态码  			响应头相关的信息
+~~~
+
+注意：响应内容是必须返回的，状态码和响应头可以任意指定或者不指定。
+
+##### 2、利用make_response来构造响应
+
+**make_response有两种方式构造**
+
+* 第一种，直接初始化构造make_response对象
+
+~~~python
+a = json.dumps({'user':'yeze'})
+b = make_response(a,	201,	headers={'x':'wofo'})
+				  响应内容   响应状态码	响应头的相关信息
+                  
+                  
+# 然后return返回b即可
+~~~
+
+
+
+* 第二种，先定义再初始化构造make_response对象
+
+~~~python
+a = json.dumps({'user':'yeze'})
+b = make_response()
+b.response = a
+b.status = '201'  
+b.headers = {'x':'wofo'}
+
+# 然后return返回b即可
+~~~
+
+
+
+#### 3、json响应格式
+
+##### 1、json.dumps()
+
+* 将字典格式数据直接转化成json格式字符串返回至前端
+
+~~~python
+@app.route('/')
+def register():
+	return json.dumps({'msg':'hello'})  # 此时前端浏览器收到的响应格式并不是application/json的，因为没有指定响应头的content-type
+~~~
+
+添加格式
+
+~~~python
+@app.route('/')
+def register():
+	return json.dumps({'msg':'hello'}), 200, {'content-type':'application/json'}
+	
+~~~
+
+
+
+##### 2、jsonify()
+
+jsonify不仅仅将字典格式数据转化成了json格式的字符串，另外给响应头content-type设置成了json
+
+注意jsonify不能同时有位置参数和关键字参数的
+
+~~~
+@app.route('/')
+def register():
+	return jsonify({'msg':'hello'})
+~~~
+
+**jsonify指定响应状态码**
+
+~~~python
+@app.route('/')
+def register():
+	return jsonify({'msg':'hello'}), 200
+~~~
+
+
+
+~~~python
+@app.route('/')
+def register():
+	r = jsonify({'msg':'hello'})
+	r.status = 201
+	return r
+~~~
+
+
+
+#### 4、响应中文
+
+无论是使用json.dumps()还是jsonify()，返回中文字符时的原生格式都不会直接显示中文
+
+~~~python
+@app.route('/')
+def register():
+	return json.dumps({"msg":"你好"})
+~~~
+
+~~~python
+{“msg":"\u4f60\u597d"} #浏览器显示情况。只有经过浏览器美化才会显示中文。谷歌浏览器没有美化，需要设置参数，才能显示
+~~~
+
+* 直接设置参数ensure_ascii
+
+~~~python
+return json.dumps({"msg":"你好"}， ensure_ascii=False)
+~~~
+
+* 或者通过配置项实现
+
+~~~python
+app.config('JSON_AS_ASCII')=False
+@app.route('/')
+def register():
+	return jsonify({"msg":"你好"})
+~~~
+
+
+
+
+
