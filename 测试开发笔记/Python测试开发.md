@@ -3377,23 +3377,40 @@ if __name__ == '__main__':
 
 ## 五、请求和响应
 
-### 一、请求对象
+### 一、请求
 
-获取前端传过来的请求数据时后端服务来管理的，Flask内置request来管理。使用from flask import request 导入
+获取前端传过来的请求数据时后端服务来管理的，Flask内置request来管理。使用from flask import request 导入。
 
-#### 1、request的参数
+#### 1、Ajax请求
+
+见代码
+
+#### 2、request的参数
 
 * request.method：保存前端的请求方式
 
 * request.form：form表单中传递过来的值，使用request.form中拿到（post）
+
 * request.args：保存的是url中传递的参数（get）
+
 * request.args与request.form的区别就是：
   * request.args是获取url中的参数，request.form是获取form表单中的参数
+  
+  
+  
 * request.json：保存请求头为application/json格式的数据（post、put）
 
+  * requst.json源码实际调用的时get_json()方法，get_json(force=False)，force参数代表是否进行强制转换。
+
+    有时请求头中并没有设置application/json，但是实际发送到服务端的信息确实时json格式的。此时可以在后端直接调用get_json方法将数据强制转化成json格式。
+
+    
+
+* request.is_xhr：用于判断是否是Ajax请求。新flask版本已经弃用。
+
+* request.is_json：用于判断是否是发送的json数据格式
+
 **其他参数**
-
-
 
 * request.values：类型CombinedMultiDict，同时存储formdata数据和URL中的数据
 
@@ -3434,9 +3451,103 @@ if __name__ == '__main__':
   * 当前url的路径的上一级全部路径  request.url_root  	# http://127.0.0.1:5000/
 * request.environ：wsgi隐含的环境配置，requset下的所有属性都是从这个属性中封装出来的。
 
+**注意request.属性的返回值全是类字典格式的，可以通过字典形式获取key-value。也可以利用request.属性.to_dict()方法将类字典格式转化为纯字典格式**
 
 
 
+#### 3、文件上传
+
+##### 1、样例
+
+前端代码
+
+~~~ html
+<form action='http://localhost:5000/upload' method='post' enctype='multipart/form-data'>
+	<input type='file' name='f'>
+	<input type='submit'>
+</form>
+~~~
+
+**注意：一定要加enctype="multipart/form-data"，不然浏览器不会上传**
+
+
+
+后端代码
+
+~~~python
+@web.route('/upload', methods = ['GET', 'POST'])
+def index():
+	r = request.files['f']
+	r.save(r.filename)
+	return ('successful')
+~~~
+
+
+
+**如果要使用文件原来的名字，用secure_filename**
+
+from werkzeug.utils import secure_filename，需要导入方法
+
+~~~python
+@app.route('/upload', methods=['GET', 'POST'])
+def upload():
+	if request.method=='GET':
+		return render_template('upload.html')
+	file = reqeust.files.get('fso')
+	path = os.getcwd()
+	file.save(path+secure_filename(file.filename))  # secure_filename()方法必须要用
+	return 'upload'
+		
+~~~
+
+
+
+##### 2、限制文件大小
+
+~~~python
+app.config['MAX_CONTENT_LENGTH']=10*1024*1024
+
+~~~
+
+
+
+##### 3、限制文件格式
+
+~~~python
+# 限制上传文件的格式
+def allowed_format(filename):
+    format_list = ['jpg', 'npg', 'md', 'gif']
+    file_format = filename.split('.')[-1]
+    if file_format in format_list:
+        return True
+    return False
+~~~
+
+
+
+##### 4、让文件可以被访问
+
+* 方法一
+
+  将文件保存到flask项目下的static目录里
+
+~~~python
+return redirect(url_for('uplaoded', filename=new_name))
+~~~
+
+
+
+* 方法二
+
+  将文件保存到任何方便管理的路径下
+
+  flask提供了send_from_directory（）方法，去找寻相关文件，然后作为服务传递给前端.
+
+~~~
+@app.route("/load/<filename>", methods=['GET'])
+def load(filename):
+	return send_form_directory(os.getcwd(), filename)
+~~~
 
 
 
@@ -3450,7 +3561,27 @@ if __name__ == '__main__':
 
 
 
-#### 2、构造响应的两种方式
+#### 2、常用的mimetype类型
+
+**媒体类型**（通常称为 **Multipurpose Internet Mail Extensions** 或 **MIME** 类型 ）是一种标准，用来表示文档、文件或字节流的性质和格式。
+
+重要：浏览器通常使用MIME类型（而不是文件扩展名）来确定如何处理URL，因此Web服务器在响应头中添加正确的MIME类型非常重要。如果配置不正确，浏览器可能会曲解文件内容，网站将无法正常工作，并且下载的文件也会被错误处理。
+
+一、常用类别格式: type/subtype
+
+　　　MIME的组成结构非常简单；由类型与子类型两个字符串中间用`'/'`分隔而组成。不允许空格存在。*type* 表示可以被分多个子类的独立类别。*subtype 表示细分后的每个类型。*MIME类型对大小写不敏感，但是传统写法都是小写。
+
+| 类型          | 描述                                                         | 典型示例                                                     |
+| ------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| `text`        | 表明文件是普通文本，理论上是人类可读                         | `text/plain`, `text/html`, `text/css, text/javascript`       |
+| `image`       | 表明是某种图像。不包括视频，但是动态图（比如动态gif）也使用image类型 | `image/gif`, `image/png`, `image/jpeg`, `image/bmp`, `image/webp`, `image/x-icon`, `image/vnd.microsoft.icon` |
+| `audio`       | 表明是某种音频文件                                           | `audio/midi`, `audio/mpeg, audio/webm, audio/ogg, audio/wav` |
+| `video`       | 表明是某种视频文件                                           | `video/webm`, `video/ogg`                                    |
+| `application` | 表明是某种二进制数据                                         | `application/octet-stream`, `application/pkcs12`, `application/vnd.mspowerpoint`, `application/xhtml+xml`, `application/xml`, `application/pdf` |
+
+
+
+#### 3、构造响应的两种方式
 
 ##### 1、直接return返回
 
@@ -3496,7 +3627,7 @@ b.headers = {'x':'wofo'}
 
 
 
-#### 3、json响应格式
+#### 4、json响应格式
 
 ##### 1、json.dumps()
 
@@ -3551,7 +3682,7 @@ def register():
 
 
 
-#### 4、响应中文
+#### 5、响应中文
 
 无论是使用json.dumps()还是jsonify()，返回中文字符时的原生格式都不会直接显示中文
 
@@ -3581,6 +3712,24 @@ def register():
 ~~~
 
 
+
+
+
+### 三、请求和响应差异点
+
+#### 1、请求头与响应头中Content-Type有何不同？
+
+Request Headers下的Content-Type是客户端对服务器约定的编码格式，服务器要按照对应格式解码；
+
+反之，Response Headers下的Content-Type是服务器对客户端约定的编码格式，客户端要按照对应格式解码。
+
+
+
+#### 2、HTTP报文头Accept和Content-Type总结
+
+Accept代表发送端（客户端）希望接受的数据类型。
+
+Content-Type代表发送端（客户端|服务器）发送的实体数据的数据类型。
 
 
 

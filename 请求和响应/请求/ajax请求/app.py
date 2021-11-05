@@ -15,7 +15,7 @@ def index():
         print(request.values)
         return '成功'
 
-
+# 如果是Ajax请求，前端的请求头里会默认添加X-Requested-With: XMLHttpRequest
 
 if __name__ == '__main__':
     app.run(debug=True)
