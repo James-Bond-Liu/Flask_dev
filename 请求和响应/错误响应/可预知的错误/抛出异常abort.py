@@ -10,7 +10,7 @@ from flask import Flask, redirect, request, url_for, render_template, make_respo
 app = Flask(__name__)
 
 # 将404的报错处理单独写出来，用app.errorhandler来处理
-@app.errorhandler(404)
+@app.errorhandler(404)  # 全局处理404的异常
 def server_error(error):
     return render_template('user_error_404.html'), 404
 
