@@ -3753,6 +3753,65 @@ Content-Type代表发送端（客户端|服务器）发送的实体数据的数�
 
 **使用url_for的形式进行重定向更好， url_for可以添加参数**
 
+~~~python
+from flask import Flask, redirect, request, url_for
+from werkzeug.routing import Rule
+
+app = Flask(__name__)
+
+@app.route('/', methods=['GET', 'PSOT'])
+def index():
+    if request.args.get('username') is None:
+        # redirect 中使用url_for(endpoint名, **values) 进行重定向，values参数是路由规则(Rule类from werkzeug.routing import Rule)中的参数
+        return redirect(url_for('hhh', username='panda', pwd='dog'))
+        # url_for在重定向时可以添加关键字参数，添加测关键字参数是重定向至URL的参数，原路由没有关系。
+        # 此重定向后，前端访问“127.0.0.1:5000/”，则会重定向至“http://127.0.0.1:5000/login?username=panda&pwd=dog”
+    return 'hello'
+
+@app.route('/login', methods = ['GET'], endpoint='hhh')
+def login():
+    return 'login'
+~~~
+
+
+
+### 五、错误响应
+
+#### 1、对于不可预知的错误
+
+自定义500：
+
+~~~python
+@app.errorhandler(500)
+def error_500(error):
+	return '现在服务器有问题，500，稍后重试'
+~~~
+
+
+
+#### 2、对于可以预知的错误
+
+##### 1、return
+
+~~~python
+@app.route('/')
+def index():
+	if not request.args.get('username'):
+		return make_response('<p> 401 没有授权 <p>', 401)
+	return 'hello, welcome to my world'
+
+~~~
+
+##### 2、abort函数
+
+~~~python
+@app.route('/')
+def index():
+	if not request.args.get('username'):
+		abort(401)
+	return 'hello, welcome to my world'
+~~~
+
 
 
 
