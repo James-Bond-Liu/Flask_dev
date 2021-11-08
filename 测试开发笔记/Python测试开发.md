@@ -2729,7 +2729,7 @@ def app(env, start_reponse):
 
         # json格式
         start_reponse('404 not found', [('content-type', 'application/json')])
-        msg = {'msg':'page not found'}
+        msg = {"msg":"page not found"}
         return [json.dumps(msg).encode()]
 ~~~
 
@@ -3810,6 +3810,23 @@ def index():
 	if not request.args.get('username'):
 		abort(401)
 	return 'hello, welcome to my world'
+~~~
+
+##### 3、自定义错误，然后抛出raise
+
+~~~python
+class NotLoginException(Exception):
+    pass
+
+@app.errorhandler(NotLoginException)
+def api_401(error):
+    return json.dumps({"msg":"not login"}), 401, {"content-type":"application/json"}
+
+@app.route("/")
+def index():
+    if not request.args.get('username'):
+        raise(NotLoginException('not login'))
+    return 'index'
 ~~~
 
 
