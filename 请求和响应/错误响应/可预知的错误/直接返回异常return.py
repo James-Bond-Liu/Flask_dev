@@ -17,7 +17,7 @@ def server_error(error):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.args.get('username') is None:
-        return render_template('user_error_404.html'), 404  # 可预知的错误第一种处理方式，直接return返回响应
+        return render_template('user_error_401.html'), 401  # 可预知的错误第一种处理方式，直接return返回响应
     return render_template('index.html')
 
 if __name__ == '__main__':
