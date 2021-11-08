@@ -1,7 +1,9 @@
 import json
 
 from flask import Flask, jsonify
-
+"""
+json的响应格式，响应数据的key和value字符串必须用"双引号。
+"""
 app = Flask(__name__)
 # 第一种方式，使用json.dumps()将字典转化为json
 @app.route('/index1', methods = ['GET', 'POST'])
