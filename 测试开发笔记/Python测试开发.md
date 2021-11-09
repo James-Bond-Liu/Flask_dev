@@ -3838,3 +3838,190 @@ def index():
 
 
 ## 六、模板引擎
+
+### 一、模板快速渲染
+
+
+
+### 二、静态文件
+
+~~~html
+<link rel="stylesheet" href="{{url_for('static', filename='demo.css')}}"
+
+p{
+	color:red
+}
+~~~
+
+
+
+### 三、变量属性
+
+~~~jinja2
+# 获取变量属性
+{{ foo.bar }}
+{{ foo[bar] }}
+
+# 设置变量
+{{ set a = 'name' }}
+~~~
+
+
+
+设置变量 **set**
+
+~~~jinja2
+{% set a = user.name %}
+# 引用变量a
+{{ a }}
+~~~
+
+
+
+### 四、for循环
+
+~~~jinja2
+{% for p in projects %}
+项目： {{ p.name }} : {{ p.interfaces }}
+{% endfor %}
+~~~
+
+
+
+获取循环当中的index： {{ loop.index }}
+
+| 变量           | 描述                                |
+| -------------- | ----------------------------------- |
+| loop.index     | 当前循环迭代的次数（从1开始）       |
+| loop.index0    | 当前循环迭代的次数（从0开始）       |
+| loop.revindex  | 到循环结束需要迭代的次数（从1开始） |
+| loop.revindex0 | 到循环结束需要迭代的次数（从0开始） |
+| loop.first     | 如果是第一次迭代，为True            |
+| loop.last      | 如果是最后一次迭代，为True          |
+| loop.length    | 序列中的项目数                      |
+
+
+
+
+
+### 五、if条件
+
+~~~
+{% if p.name == 'panda' %}
+项目：{{ p.name }} : {{ p.interfaces }}
+
+{% elif p.name == 'demo' %}
+
+{% endfor %}
+~~~
+
+
+
+
+
+### 六、消息闪现
+
+flask端：
+
+~~~
+flash("you have many projects")
+~~~
+
+jinja:
+
+~~~
+{% set msg = get_flashed_messages() %}
+{{ msg }}
+~~~
+
+flash源码：实际是把flash数据添加到session里面。再定义个全局函数去获取。
+
+
+
+注册的例子：
+
+~~~
+@app.route("/login/", methods=["GET", "POST"])
+def login():
+	if request.method == 'POST':
+		username = request.form.get('user')
+		pwd = request.form.get('pwd'):
+		if not all([username, pwd]):
+			flash('请输入账号或密码')
+		elif username != 'yuze' and pwd != '1234'
+	return render_template('demo_flash_msg.html')
+			
+~~~
+
+
+
+jinja:
+
+~~~
+{% set msg = get_flashed_messages() %}
+{% for m in msg %}
+{{ m }}
+{% endfor %}
+登录
+<form action="/login/", method="post">
+	<input name="user">
+	<input type="password", name="pwd">
+	<input type="submit">
+</form>
+	
+~~~
+
+
+
+
+
+### 七、可以访问的全局变量和函数
+
+session，显示用户民
+
+request
+
+g
+
+config
+
+url_for()
+
+get_flashed_messages()
+
+~~~
+<body>
+	{{ session }}
+	{{ request }}
+	{{ g }}
+</body>
+~~~
+
+
+
+
+
+### 八、URL反向构建
+
+1、反转通常比硬编码的URL的描述性更好
+
+2、你可以只在一个地方改变URL，而不用到处乱找
+
+3、URL创建会为你处理特殊字符的转义和Unicode数据，比较直观
+
+4、生产路径总是绝对路径，可以避免相对路径产生副作用
+
+5、如果你的应用是放在URL根路径之外的地方（如在/myappliction中，不在/ 中），url_for()会为你妥善处理
+
+~~~
+<form action="{{ url_for('login') }}", method="post"
+~~~
+
+
+
+
+
+### 九、管道命令过滤器
+
+#### 1、字符串
+
