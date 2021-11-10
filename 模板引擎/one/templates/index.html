@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="../static/jquery-1.12.4.min.js"></script>
+    <title>{{ title }}</title>
+</head>
+<body>
+<!--    {{ p }} 可以直接获取到后端在render_template中p变量 -->
+
+    {{ p }}
+    <hr>
+<!--    {% for project in p %}  for遍历循环-->
+    {% for project in p %}
+    <div>项目名称：{{ project.name }}, 接口数量：{{ project.interface_num }}, 创建时间：{{ project.create_time }}</div>
+    {% endfor %}
+</body>
+</html>
