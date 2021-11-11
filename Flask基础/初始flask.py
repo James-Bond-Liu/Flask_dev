@@ -9,10 +9,10 @@ from flask import request  # request存储了请求参数、地址等环境信�
 from flask import render_template  # 返回某个静态文件模板时导入
 # 初始化app即application
 # Flask类只有一个必须指定的参数，即程序主模块或者包的名字，__name__是系统变量，该变量指的是本python文件的文件名
-app = Flask(__name__,
+app = Flask(__name__,  # __name__：导入路径（寻找静态目录与模板目录位置的参数）
             template_folder='templates',  # template_folder参数用于指定模板在哪个目录下，默认templates
             static_folder='static',  # 用于告诉后端程序，程序的静态文件保存目录
-            static_url_path='/static'  # 参数值必须以“/”开头，前端访问的时候告诉用户，我的哪一个url下面可以访问到静态文件。默认是"/static"
+            static_url_path='/static'  # 参数值必须以“/”开头，访问静态资源的url前缀，默认值是/static，用于区分用户访问内容是静态资源还是动态路由
             )
 
 # 添加路由（以装饰器的方式添加）
