@@ -6,19 +6,19 @@
     <title>{{ title }}</title>
 </head>
 <body>
-<!--    {{ p }} 可以直接获取到后端在render_template中p变量 -->
 
-{{ p }}
+{{ p }}  {# 可以直接获取到后端在render_template中p变量 #}
 <hr>
-<!--{% for project in p %}  for遍历循环，注意必须有for循环的结束标签-->
-
+{# {% for project in p %} #}  for遍历循环，注意必须有for循环的结束标签
+jinja2中的for循环
 {% for project in p %}
 <!--可以通过变量名[key]或这变量名。key来获取字典中的value-->
 <div>项目名称：{{ project.name }}, 接口数量：{{ project['interface_num'] }}, 创建时间：{{ project.create_time }}</div>
 {% endfor %}
 <hr>
 
-<!--设置变量，提高代码复用性-->
+jinja2中的设置变量
+<!--set 设置变量，提高代码复用性-->
 {% for project in p %}
 {% set name = project.name %}
 {% set interface_num = project['interface_num'] %}
@@ -27,6 +27,7 @@
 <hr>
 
 <!--for循环中的参数-->
+jinja2中使用循环中的索引参数
 {% for project in p %}
 <div>序号（递增）：{{ loop.index }}, 项目名称：{{ project.name }}, 接口数量：{{ project['interface_num'] }}, 创建时间：{{ project.create_time }}</div>
 <div>序号（递减）：{{ loop.revindex }}, 项目名称：{{ project.name }}, 接口数量：{{ project['interface_num'] }}, 创建时间：{{ project.create_time }}</div>
@@ -36,6 +37,7 @@
 <!--if语句-->
 <!--展示下一个项目名称。-->
 <!--如果不是最后一个项目则打印项目名称，若是最后一个项目打印其序号-->
+jinja2中if
 {% for project in p %}
 {% if not loop.last %}
 <div>序号（展示下一个项目的名称）：{{ loop.nextitem.name }}, 项目名称：{{ project.name }}, 接口数量：{{ project['interface_num'] }}, 创建时间：{{ project.create_time }}</div>

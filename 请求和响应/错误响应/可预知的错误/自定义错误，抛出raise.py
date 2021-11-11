@@ -9,7 +9,7 @@ class UserError(Exception):  # 自定义一个错误类型，继承错误的基�
 
 # 当全局出现UserError的错误类型如何处理
 @app.errorhandler(UserError)  # 全局处理UserError错误类型
-def server_error(error):
+def api_401_error(error):
     return render_template('user_error_401.html',error=error), 401
 
 @app.route('/', methods=['GET', 'POST'])
