@@ -3863,7 +3863,7 @@ p{
 {{ foo[bar] }}
 
 # 设置变量
-{{ set a = 'name' }}
+{{% set a = 'name' %}}
 ~~~
 
 
@@ -3899,6 +3899,7 @@ p{
 | loop.first     | 如果是第一次迭代，为True            |
 | loop.last      | 如果是最后一次迭代，为True          |
 | loop.length    | 序列中的项目数                      |
+| loop.nextitem  | 获取下一个项目                      |
 
 
 
