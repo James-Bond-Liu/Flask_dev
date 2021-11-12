@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="../static/jquery-1.12.4.min.js"></script>
+    <title>{{ title }}</title>
+</head>
+<body>
+<!--session、url_for()这些全局的变量和函数可以在模板中直接使用-->
+{% if session.user %}
+    hello, {{ session.user }}! welcom to my world!
+{% else %}
+<a href="{{ url_for('login', username='monkey') }}">你还没有登录！</a>
+{% endif %}
+
+<hr>
+<hr>
+
+{{ g }}<br>
+<hr>
+{{ session }}<br>
+<hr>
+{{ request }}
+获取request中的参数
+{{ request.method }}
+
+</body>
+</html>
+
