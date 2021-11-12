@@ -3437,8 +3437,8 @@ if __name__ == '__main__':
   ~~~python
   # 后端写法
   print(request.files)  # ImmutableMultiDict([('file', <FileStorage: 'DragonFire.txt' ('text/plain')>)])
-  print(request.files["demo"])  # <FileStorage: 'DragonFire.txt' ('text/plain')>
-  my_file = request.files["demo"]
+  print(request.files["set_for_if_flash"])  # <FileStorage: 'DragonFire.txt' ('text/plain')>
+  my_file = request.files["set_for_if_flash"]
   my_file.save("OldBoyEDU.txt")  # 保存文件,里面可以写完整路径+文件名
   ~~~
 
@@ -3754,6 +3754,7 @@ Content-Type代表发送端（客户端|服务器）发送的实体数据的数�
 
 * redirect("/new/url")
 * redirect(url_for("endpoint"))
+  * url_for(端点名)，url_for函数作用，通过传入的端点名称构造一个URL出来
 
 **使用url_for的形式进行重定向更好， url_for可以添加参数**
 
@@ -3841,9 +3842,24 @@ def index():
 
 ### 一、模板快速渲染
 
+渲染一个模板，在flask中使用render_template()方法即可
+
+~~~python
+@app.route('/')
+def index():
+  # return render_template('about.html',user='username')  
+  return render_template('about.html',**{'user':'username'})  # 变量user，在html模板中可以通过{{ user }}直接获取使用
+~~~
+
+- `{{ ... }}`：装载一个变量，模板渲染的时候，会使用传进来的同名参数这个变量代表的值替换掉。
+- `{% ... %}`：装载一个控制语句。
+- `{# ... #}`：装载一个注释，模板渲染的时候会忽视这中间的值。
+
 
 
 ### 二、静态文件
+
+在模板引用静态文件
 
 ~~~html
 <link rel="stylesheet" href="{{url_for('static', filename='demo.css')}}"
@@ -3857,22 +3873,27 @@ p{
 
 ### 三、变量属性
 
-~~~jinja2
-# 获取变量属性
-{{ foo.bar }}
-{{ foo[bar] }}
+在模板中设置变量，并引用变量的值/属性
 
-# 设置变量
-{{% set a = 'name' %}}
+~~~jinja2
+模板中设置变量
+{% set a = "panda" %}
+模板中引用变量
+{{ a }}
 ~~~
 
 
 
-设置变量 **set**
-
 ~~~jinja2
-{% set a = user.name %}
-# 引用变量a
+后端设置数据，并通过render_template渲染到模板中
+user={'name':'panda', 'age':18}
+
+模板中使用变量,获取变量属性
+{{ user.name }}
+{{ user['name'] }}
+
+{% set a=user.name %}
+引用变量a
 {{ a }}
 ~~~
 
@@ -3888,7 +3909,7 @@ p{
 
 
 
-获取循环当中的index： {{ loop.index }}
+for循环内置常量：例如 {{ loop.index }}
 
 | 变量           | 描述                                |
 | -------------- | ----------------------------------- |
@@ -3907,16 +3928,15 @@ p{
 
 ### 五、if条件
 
-~~~
+~~~jinja2
 {% if p.name == 'panda' %}
-项目：{{ p.name }} : {{ p.interfaces }}
+***
 
 {% elif p.name == 'demo' %}
+***
 
 {% endif %}
 ~~~
-
-
 
 
 
@@ -3924,13 +3944,13 @@ p{
 
 flask端：
 
-~~~
+~~~python
 flash("you have many projects")
 ~~~
 
-jinja:
+jinja2:
 
-~~~
+~~~jinja2
 {% set msg = get_flashed_messages() %}
 {{ msg }}
 ~~~
@@ -3976,19 +3996,16 @@ jinja:
 
 
 
-### 七、可以访问的全局变量和函数
+### 七、可以在模板中访问的全局变量和函数
 
-session，显示用户民
+注意：以下的变量均是后端实现的功能，同时在模板中也可以访问这些变量和函数。
 
-request
-
-g
-
-config
-
-url_for()
-
-get_flashed_messages()
+* session，用于保存客户端传到后台的数据，类字典的形式
+* request，flask中的request
+* g，
+* config，flask中的配置项
+* url_for()
+* get_flashed_messages()，消息闪现
 
 ~~~
 <body>

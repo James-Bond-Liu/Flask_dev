@@ -31,7 +31,7 @@ def upload():
 
 """
 后端获取文件名是通过URL来获取的。
-但假如我们上传的文件名有空格，当文件上传至后台，通过URL获取时，比如文件名“dmeo one.doc”，在URL中体现为“demo%ud%20one.doc”。
+但假如我们上传的文件名有空格，当文件上传至后台，通过URL获取时，比如文件名“dmeo one.doc”，在URL中体现为“set_for_if_flash%ud%20one.doc”。
 此时后端获取文件名与原文件名发生差异。secure_filename(file.filename),用来获取原始文件名。
 """
 

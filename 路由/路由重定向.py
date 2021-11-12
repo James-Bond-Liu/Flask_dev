@@ -25,7 +25,7 @@ def getcase2():
 
 
 
-@app.route('/', methods=['POST', 'GET'], endpoint='demo')
+@app.route('/', methods=['POST', 'GET'], endpoint='set_for_if_flash')
 def index():
     return 'hello, 张景小仙女'
 print(app.url_map)

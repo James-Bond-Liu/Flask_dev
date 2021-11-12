@@ -8,7 +8,7 @@ from flask import Flask, redirect
 app = Flask(__name__)
 
 
-@app.route('/', methods=['POST', 'GET'], endpoint='demo')
+@app.route('/', methods=['POST', 'GET'], endpoint='set_for_if_flash')
 # route源码只有两个参数，rule-路由地址，options-关键字参数（methods、endpoint、defaults、redirect_to等）
 # methods 只当请求方法
 # endpoint 指定端点的名称，默认为视图函数的名称
