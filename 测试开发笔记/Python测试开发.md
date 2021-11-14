@@ -3961,7 +3961,7 @@ flash源码：实际是把flash数据添加到session里面。再定义个全局
 
 注册的例子：
 
-~~~
+~~~python
 @app.route("/login/", methods=["GET", "POST"])
 def login():
 	if request.method == 'POST':
@@ -3978,7 +3978,7 @@ def login():
 
 jinja:
 
-~~~
+~~~jinja2
 {% set msg = get_flashed_messages() %}
 {% for m in msg %}
 {{ m }}
@@ -4008,7 +4008,7 @@ jinja:
 * url_for()
 * get_flashed_messages()，消息闪现
 
-~~~
+~~~jinja2
 <body>
 	{{ session }}
 	{{ request }}
@@ -4043,4 +4043,64 @@ jinja:
 ### 九、管道命令过滤器
 
 #### 1、字符串
+
+~~~jinja2
+{# 当变量未定义时，显示默认字符串，可以缩写为d #}
+{{ name | default('No name', true) }}
+
+{# 单词首字母大写 #}
+{{ 'hello' | capitalize }}
+
+{# 单词全小写 #}
+{{ 'XML' | lower }}
+
+{# 去除字符串前后的空白符 #}
+{{ 'hello' | trim }}
+
+{# 字符串反转，返回“olleh” #}
+{{ 'hello' | reverse }}
+
+{# 格式化输出，返回“number is 2” #}
+{{ '%s is %d' | format("Number", 2)}}
+~~~
+
+
+
+
+
+~~~jinja2
+{# 关闭HTML自动转义 #}
+{{ '<em>name</em>' | safe }}
+
+{% autoescape false %}
+{# HTML转义，即使autoescape关了也会转义，可以缩写为e #}
+{{ '<em>name</em>' | escape }}
+{% endautoescape %}
+~~~
+
+
+
+
+
+数字
+
+~~~jinja2
+{# 四舍五入取整，返回13.0 #}
+{{ 12.888 | round }}
+
+{# 向下截取到小数点后两位，返回12.88 #}
+{{ 12.888 | round(2，'floor') }}
+
+{# 绝对值，返回12 #}
+{{ -12 | abs }}
+~~~
+
+
+
+
+
+列表
+
+~~~jinja2
+~~~
 
