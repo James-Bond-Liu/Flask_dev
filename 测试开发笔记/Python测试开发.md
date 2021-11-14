@@ -4046,7 +4046,7 @@ jinja:
 
 ~~~jinja2
 {# 当变量未定义时，显示默认字符串，可以缩写为d #}
-{{ name | default('No name', true) }}
+{{ name | default('No name', True) }}
 
 {# 单词首字母大写 #}
 {{ 'hello' | capitalize }}
@@ -4055,7 +4055,7 @@ jinja:
 {{ 'XML' | lower }}
 
 {# 去除字符串前后的空白符 #}
-{{ 'hello' | trim }}
+{{ '    hello    ' | trim }}
 
 {# 字符串反转，返回“olleh” #}
 {{ 'hello' | reverse }}
@@ -4102,5 +4102,87 @@ jinja:
 列表
 
 ~~~jinja2
+{# 取第一个元素 #}
+{{ [1,2,3,4] | first }}
+
+{# 去最后一个元素 #}
+{{ [1,2,3,4] | last }}
+
+{# 返回列表长度，可以写为count #}
+{{ [1,2,3,4] | length }}
+
+{# 列表求和 #}
+{{ [1,2,3,4] | sum }}
+
+{# 列表排序，默认为升序 #}
+{{ [3,4,5,1,2] | sort }}
+
+{# 合并为字符串，返回“1|2|3|4|5” #}
+{{ [3,4,5,1,2] | join('|') }}
+
+{# 列表中所有元素全都大写，这里可以用upper，lower，但是capitalize无效 #}
+{{ ['tom','bob','ada'] | upper }}
 ~~~
 
+
+
+
+
+tojson
+
+~~~
+{{ user | tojson | safe(0,10前) }}
+~~~
+
+
+
+注册过滤器
+
+方法一：装饰器
+
+~~~
+@app.template_filter()
+def file_format(filename):
+	split = filename.rsplit('.',1)
+	if len(split) <= 1:
+		return filename
+	return split[1]
+	
+{{ filename | file_format}}
+~~~
+
+
+
+
+
+方法二：更集中的注册
+
+~~~
+app.jinja_env.fileters['file_format'] = file_format
+app.add_template_filter(函数名, 过滤器名称)
+~~~
+
+实际上，装饰器还是去调用方法二
+
+
+
+
+
+十一、测试
+
+除了过滤器，所谓的“测试”也是可用的。测试可以用于对照普通表达式测试一个变量。
+
+要测试一个变量或表达式，你要在变量后加上一个is以及测试的名称。例如，要得出一个值是否定义过，你可以用 `name is defined`，这会根据name是否定义返回true或false。
+
+测试也可以接受参数，如果测试只接收一个参数，你可以省去括号来分组他们。例如下面的两个表达式做同样的事情。
+
+~~~
+{% if loop.index is divisibleby 3 %}
+{% if loop.index is divisibleby (3) %}
+~~~
+
+
+
+
+
+内置测试器

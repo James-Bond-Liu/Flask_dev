@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="../static/jquery-1.12.4.min.js"></script>
+    <title>{{ title }}</title>
+</head>
+<body>
+{% set msg = name %}
+{{ msg | default('no User')}}  {# default中没有True参数，当参数msg没有被定义时显示默认值，只要被定义了无论msg是否为空或者实际值，都显示。 #}
+{{ msg | default('no User', True)}}  {# default中有True参数，当参数msg没有被定义时显示默认值，当参数被定义了又为None时显示默认值。主要用来判断参数是否为空 #}
+</body>
+</html>
+
