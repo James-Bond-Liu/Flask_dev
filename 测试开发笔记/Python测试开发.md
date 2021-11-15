@@ -4032,17 +4032,17 @@ jinja:
 
 5、如果你的应用是放在URL根路径之外的地方（如在/myappliction中，不在/ 中），url_for()会为你妥善处理
 
-~~~
+~~~HTML
 <form action="{{ url_for('login') }}", method="post"
 ~~~
 
 
 
+### 九、过滤器
 
+#### 一、管道命令过滤器
 
-### 九、管道命令过滤器
-
-#### 1、字符串
+##### 1、字符串
 
 ~~~jinja2
 {# 当变量未定义时，显示默认字符串，可以缩写为d #}
@@ -4082,7 +4082,7 @@ jinja:
 
 
 
-#### 2、数字
+##### 2、数字
 
 ~~~jinja2
 {# 四舍五入取整，返回13.0 #}
@@ -4099,7 +4099,7 @@ jinja:
 
 
 
-#### 3、列表
+##### 3、列表
 
 ~~~jinja2
 {# 取第一个元素 #}
@@ -4128,7 +4128,7 @@ jinja:
 
 
 
-#### 4、tojson
+##### 4、tojson
 
 ~~~
 {{ user | tojson | safe(0,10前) }}
@@ -4136,11 +4136,11 @@ jinja:
 
 
 
-### 十、注册过滤器
+#### 二、注册自定义过滤器
 
 方法一：装饰器
 
-~~~
+~~~python
 @app.template_filter()
 def file_format(filename):
 	split = filename.rsplit('.',1)
@@ -4168,7 +4168,9 @@ app.add_template_filter(函数名, 过滤器名称)
 
 
 
-### 十一、测试
+### 十、测试
+
+* 主要用来做判断的
 
 除了过滤器，所谓的“测试”也是可用的。测试可以用于对照普通表达式测试一个变量。
 
@@ -4176,7 +4178,7 @@ app.add_template_filter(函数名, 过滤器名称)
 
 测试也可以接受参数，如果测试只接收一个参数，你可以省去括号来分组他们。例如下面的两个表达式做同样的事情。
 
-~~~
+~~~jinja2
 {% if loop.index is divisibleby 3 %}
 {% if loop.index is divisibleby (3) %}
 ~~~
@@ -4185,4 +4187,131 @@ app.add_template_filter(函数名, 过滤器名称)
 
 
 
-内置测试器
+#### 一、内置测试器
+
+~~~jinja2
+{# 检查变量是否被定义，也可以用undefined检查是否未被定义 #}
+{% if name is defined %}
+	Name is : {{ name }}
+{% endif %}
+
+{# 检查是否所有字符都是大写 #}
+{% if name is upper %}
+	"{{ name }}" are all upper case.
+{% endif %}
+
+{# 检查变量是否为空 #}
+{% if name is none %}
+	variable is none 
+{% endif %}
+
+{# 检查变量是否为字符串，也可以用number来检查是否为数值 #}
+{% if name is string %}
+	{{ name }} is a string
+{% endif %}
+
+{# 检查数值是否为偶数，也可以用odd检查是否为奇数 #}
+{% if 2 is even %}
+	Variable is an even number
+{% endif %}
+
+{# 检查变量是否可被迭代循环，也可以用sequence检查是否是序列 #}
+{% if [1,2,3] is iterable %}
+	Variable is iterable
+{% endif %}
+
+{# 检查变量是否是字典 #}
+{% if {'name':'test'} is mapping %}
+	Variable is dict
+{% endif %}
+~~~
+
+
+
+#### 二、自定义测试器
+
+~~~python
+# 自定义一个测试，用来判断数据是否为json格式
+@app.template_test()
+def jsoned(my_str):
+    try:
+        json.loads(my_str)
+        return True
+    except ValueError:
+        return False
+        
+~~~
+
+
+
+~~~jinja2
+{% if test_json is jsoned %}
+{{ test_json }}
+{% else %}
+not a json
+{% endif %}
+~~~
+
+
+
+
+
+### 十一、context_processor环境处理器
+
+比如：全局变量g，session等并没有通过render_template返回至前端模板中，但是依然可以使用这些变量、函数等，实际上都是环境处理器在起作用。
+
+* 主要用来定义一些全局可以访问的变量和方法函数
+
+~~~python
+@app.context_processor
+def project_number():
+	return {"project_num":4}
+~~~
+
+
+
+函数用`@app.context_processor`装饰器修饰，它是一个上下文处理器，它的作用是在模板被渲染前运行其所修饰的函数，并将函数返回的字典导入到模板上下文环境中，与模板上下文合并。
+
+不仅可以传递变量，还可以传递函数
+
+~~~python
+@app.context_processor
+def add_funtion():
+	def format_file(filename):
+		split = filename.rsplit('.',1)
+		if len(split) <= 1:
+			return filename
+        return split[1]
+
+	def get_project(user):
+    	return "4 of user: {}".format(user)
+	return dict(format_file2=format_file, get_project2=get_project)
+
+# 模板
+{{ format_file2('demo.pdf') }}
+{{ get_project2('panda') }}
+
+# 动态获取数据
+{{ format_file2(file) }}
+{{ get_project2(user) }} # 参数在view_fun 传递
+~~~
+
+* 注意：返回的内容需要是一个字典形式模板去获取。传递函数会发现和过滤器的作用又有所重复，但是当要操作多个变量的时候这个函数会更有优势。
+
+
+
+十三、全局函数
+
+前面的都是在上下文环境中添加，全局函数是完完全全的一个全局的。随时都可以用的。用法和全局变量一样。
+
+
+
+~~~python
+import re
+
+def accept_pattern(pattern_str):
+	pattern = re.compile(pattern_str, re.s)
+	
+	def search(content):
+~~~
+

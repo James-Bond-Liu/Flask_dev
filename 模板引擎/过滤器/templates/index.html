@@ -6,6 +6,13 @@
     <title>{{ title }}</title>
 </head>
 <body>
+{# 自定义过滤器应用 #}
+{% for project in p %}
+<div> 项目名称：{{ project.name | capitalize | upper }}, 接口数量：{{ project['interface_num'] }}, 创建时间：{{ project.create_time | s_time }}</div> {# 可以直接使用后端定义的过滤器s_time #}
+{% endfor %}
+<hr>
+<hr>
+{# 管道命令过滤器应用 #}
 {% set msg = name %}
 {{ msg | default('no User')}}  {# default中没有True参数，当参数msg没有被定义时显示默认值，只要被定义了无论msg是否为空或者实际值，都显示。 #}
 {{ msg | default('no User', True)}}  {# default中有True参数，当参数msg没有被定义时显示默认值，当参数被定义了又为None时显示默认值。主要用来判断参数是否为空 #}

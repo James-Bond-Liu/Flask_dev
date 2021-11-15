@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="../static/jquery-1.12.4.min.js"></script>
+    <title>{{ title }}</title>
+</head>
+<body>
+
+{% for project in p %}
+<div> 项目名称：{{ project.name }}, 接口数量：{{ project['interface_num'] }}, 创建时间：{{ add_stime(project.create_time) }}</div>   {# 调用环境管理器中的函数，将时间戳转化为便于阅读形式 #}
+{% endfor %}
+<hr>
+<hr>
+{# 自定义环境管理器引用 #}
+{# 获取变量 #} {{ liufei }}  {{ user }}
+
+
+</body>
+</html>
+
