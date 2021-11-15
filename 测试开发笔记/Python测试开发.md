@@ -4258,9 +4258,11 @@ not a json
 
 ### 十一、context_processor环境处理器
 
-比如：全局变量g，session等并没有通过render_template返回至前端模板中，但是依然可以使用这些变量、函数等，实际上都是环境处理器在起作用。
+比如：全局变量g，session等并没有通过render_template返回至前端模板中，但是依然可以使用这些变量、函数等，实际上都是环境处理器上下文在起作用。
 
 * 主要用来定义一些全局可以访问的变量和方法函数
+
+#### 1、传递变量
 
 ~~~python
 @app.context_processor
@@ -4272,7 +4274,7 @@ def project_number():
 
 函数用`@app.context_processor`装饰器修饰，它是一个上下文处理器，它的作用是在模板被渲染前运行其所修饰的函数，并将函数返回的字典导入到模板上下文环境中，与模板上下文合并。
 
-不仅可以传递变量，还可以传递函数
+#### 2、传递函数
 
 ~~~python
 @app.context_processor
@@ -4285,7 +4287,7 @@ def add_funtion():
 
 	def get_project(user):
     	return "4 of user: {}".format(user)
-	return dict(format_file2=format_file, get_project2=get_project)
+	return dict(format_file2=format_file, get_project2=get_project)  # 以字典的形式返回方法和变量
 
 # 模板
 {{ format_file2('demo.pdf') }}
@@ -4296,22 +4298,61 @@ def add_funtion():
 {{ get_project2(user) }} # 参数在view_fun 传递
 ~~~
 
-* 注意：返回的内容需要是一个字典形式模板去获取。传递函数会发现和过滤器的作用又有所重复，但是当要操作多个变量的时候这个函数会更有优势。
+* 注意：返回的内容需要是一个字典形式让模板去获取。传递函数会发现和过滤器的作用又有所重复，但是当要操作多个变量的时候这个函数会更有优势。
 
 
 
-十三、全局函数
+### 十三、全局函数
 
-前面的都是在上下文环境中添加，全局函数是完完全全的一个全局的。随时都可以用的。用法和全局变量一样。
+前面的都是在上下文环境中添加，全局函数是完完全全的一个全局的。随时都可以用的，用法和全局变量一样。
 
 
 
 ~~~python
 import re
-
+@app.template_global
 def accept_pattern(pattern_str):
 	pattern = re.compile(pattern_str, re.s)
 	
 	def search(content):
+        return pattern.findall(content)
+    return dict(search=search, current_pattern=pattern_str)
+
+app.add_template_global(accept_pattern, 'accent_pattern')  #参数1-被装饰的函数，参数2-自定义名称
+~~~
+
+
+
+### 继承
+
+* 继承父模板
+
+基模板
+
+~~~
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>测试开发 - {% block title %}{% endblock %}</title>
+</head>
+<boday>
+	你好，欢迎来到测试开发！
+	<p>这里是你的信息</p>
+	<hr>
+	{% block content %}
+	这里是变化的内容，自定义的内容
+	{% endblock %}
+	<hr>
+	<p>页面已经结束 @copyright</p>
+</boday>
+</html>
+~~~
+
+
+
+子模板
+
+~~~
 ~~~
 

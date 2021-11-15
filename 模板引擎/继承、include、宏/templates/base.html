@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>测试开发-{% block nav_title %}默认标题{% endblock %}</title>
+</head>
+<body>
+{# 公共区域，导航栏 #}
+<p>首页</p>
+<p>项目管理</p>
+<p>测试用例管理</p>
+<p>赞助商</p>
+<hr>
+
+{% block content %}  {# content只是一个标签名可以随意更换 #}
+    这里表示每个子模板里的不同的内容
+{% endblock %}
+<hr>
+{# 公共区域，联系我们 #}
+<p>联系我们</p>
+</body>
+</html>
