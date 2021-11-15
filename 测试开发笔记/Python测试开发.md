@@ -4354,5 +4354,8 @@ app.add_template_global(accept_pattern, 'accent_pattern')  #参数1-被装饰的
 子模板
 
 ~~~
+{% extens "baseage.html" %}
+
+
 ~~~
 

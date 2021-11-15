@@ -1,7 +1,7 @@
 {% extends 'base.html' %}  {# 代表继承父模板 #}
 
 
-{% block nav_title %}{{ super() }}项目管理{% endblock %}  {# 引用父模板中的内容，同时也有自定义的内容 #}
+{% block nav_title %}{{ super() }}项目管理{% endblock %}  {# 引用父模板中的内容，同时也有自定义的内容，类似于python中的超继承 #}
 
 {% block content %}
     <p>下面是所有待开发的项目</p>
