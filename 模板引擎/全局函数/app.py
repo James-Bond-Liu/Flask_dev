@@ -5,20 +5,14 @@ from datetime import datetime
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'djfks'
 
-"""自定义环境管理器传递变量"""
-@app.context_processor  # 注意不需要传入参数
-def add_processor1():
-    return {'liufei':26}
 
-"""自定义环境管理器传递方法函数"""
-# 用环境管理器的方式实现过滤器
-@app.context_processor
-def add_processor2():
+"""自定义全局函数"""
+@app.template_global
+def add_global(timestamp):
     def add_stime(timestamp):
         return datetime.fromtimestamp(timestamp)
-
-    return {"user":['panda', 'fox'], "add_stime":add_stime}  # 以字典的形式将函数传递至前端模板中。在模板中使用的实际是字典的key而不是value
-
+    return {"add_stime":add_stime}  # 以字典的形式将函数传递至前端模板中。在模板中使用的实际是字典的key而不是value
+# app.add_template_global(add_global, 'demo')
 
 @app.route('/')
 def index():

@@ -3907,6 +3907,14 @@ user={'name':'panda', 'age':18}
 {% endfor %}
 ~~~
 
+默认每个for循环得到的元素之间有空白，如果要去除空白，使用`-`
+
+~~~jinja2
+{% for p in projects -%}
+项目： {{ p.name }} : {{ p.interfaces }}
+{%- endfor %}
+~~~
+
 
 
 for循环内置常量：例如 {{ loop.index }}
@@ -4306,7 +4314,7 @@ def add_funtion():
 
 前面的都是在上下文环境中添加，全局函数是完完全全的一个全局的。随时都可以用的，用法和全局变量一样。
 
-
+使用方法和context_processor一样，只不过全局函数的注册器为@app.template_global，装饰器不用加参数
 
 ~~~python
 import re
@@ -4323,13 +4331,15 @@ app.add_template_global(accept_pattern, 'accent_pattern')  #参数1-被装饰的
 
 
 
-### 继承
+### 十四、继承、宏、include
+
+#### 继承
 
 * 继承父模板
 
 基模板
 
-~~~
+~~~html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -4353,9 +4363,134 @@ app.add_template_global(accept_pattern, 'accent_pattern')  #参数1-被装饰的
 
 子模板
 
-~~~
+~~~jinja2
 {% extens "baseage.html" %}
 
+{% block title %} demo-herit {% endblock %}
+
+{% block content %} 变成新内容。 {% endblock %}
+
 
 ~~~
 
+
+
+
+
+#### include
+
+~~~jinja2
+{% include 'demo_new_content.html' %}   {# 导入其他html模板中的代码到相应文件 #}
+~~~
+
+
+
+
+
+#### 宏（自定义函数）
+
+~~~jinja2
+{% macro render_field(field) %}   {# 关键字：macro 函数名称：render_field 参数：field #}
+	{{ field.label }}
+	{{ field }}
+{% endmacro %}
+~~~
+
+
+
+~~~jinja2
+{% from 'macros.html' import render_field %}
+{{ render_field(form.phone) }}
+{{ render_field(form.pwd) }}
+{{ render_fiedld(form.confirm_pwd) }}
+~~~
+
+
+
+
+
+## 七、表单验证
+
+### 一、表单传送过程
+
+客户端发起请求》》》》flask中的request保存数据》》》》通过request.form获取数据
+
+
+
+### 二、为什么要有参数验证
+
+* 请求携带脚本，进行恶意攻击，删除数据库，查询敏感数据内容等
+* 用户发送过来的任何数据都是不可信任的
+* 判断用户信息不仅仅要从前端更要在后端进行校验
+
+
+
+### 三、数据验证
+
+* 写一个登录或者注册的例子
+* 要数据库验证需要耗费时间的条件放到最后，越影响性能的条件越放到后面。
+
+
+
+第一种方式
+
+~~~python
+@app.route('/<phone>/pwd')
+def register(phone,pwd):
+	if len(str(phone)) != 11:
+		return 'phone number is error'
+    if not phone.isdigit():
+        return 'wrong phone nubmer'
+    if not phone.startswith('1'):
+        return 'wrong phone number'
+    if len(str(pwd))<8:
+        return 'pwd need at least 8'
+    if pwd.isdigit():
+        return 'pwd too simple'
+  	return 'welcom to python'
+
+~~~
+
+
+
+
+
+第二种方式
+
+~~~python
+@app.route('/<phone>/pwd')
+def register(phone,pwd):
+	if len(str(phone)) != 11:
+		abort(412, description='phone number is error') 
+    if not phone.isdigit():
+    	abort(412, description='wrong phone nubmer') 
+        
+    if not phone.startswith('1'):
+    	abort(412, description='wrong phone number') 
+    if len(str(pwd))<8:
+    	abort(412, description='pwd need at least 8') 
+    if pwd.isdigit():
+    	abort(412, description='pwd too simple') 
+  	return 'welcom to python'
+~~~
+
+abort(412)，如果description是中文的会乱码，需要指定content-type：text/html;charset=UTF-8
+
+~~~
+res = Response('请输入电话号码'， status='412', content-type='text/html;charset=utf-8')
+~~~
+
+
+
+前端需要渲染
+
+~~~
+if not phone:
+	res = Response(
+		render_template('register.html', msg='请输入电话号码')，status='412', content-type='text/html;charset=utf-8')
+	abort(res)
+~~~
+
+需要考虑的情况：
+
+电话号码为空；电话号码不正确；密码为空
