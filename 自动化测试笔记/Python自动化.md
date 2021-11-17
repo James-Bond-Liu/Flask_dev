@@ -542,7 +542,67 @@ ab.py尝试打开b_file下的a.txt：../b_file/a.txt
    * 若两个父类具有相同的方法名是，就近原则。One近，Two远
    * 需要注意：括号中父类中的顺序，若是父类中有相同的方法名，而在子类使用中未指定，python从左至右搜索方法。
 
-### 12、离线安装库
+### 12、python的内置函数
+
+#### 1、all()函数
+
+* all() 函数用于判断给定的可迭代参数 iterable 中的所有元素是否都为 TRUE，如果是返回 True，否则返回 False。
+  元素除了是 0、空、None、False 外都算 True。
+
+  ~~~python
+  name = 'panda'
+  age = None
+  data = [name, age]
+  if all(data) is None:
+  	print("****")
+  ~~~
+
+
+
+#### 2、encode()和decode()函数
+
+* 以指定的格式对字符串进行编码和解码，默认编码格式为“UTF-8”
+* **字符串在Python内部的表示是unicode编码**，因此，在做编码转换时，通常需要以unicode作为中间编码， 即先将其他编码的字符串解码（decode）成unicode，再从unicode编码（encode）成另一种编码。
+* **decode的作用是将其他编码的字符串转换成unicode编码**，如str1.decode('gb2312')，表示将gb2312编码的字符串str1转换成unicode编码。
+* **encode的作用是将unicode编码转换成其他编码的字符串**，如str2.encode('gb2312')，表示将unicode编码的字符串str2转换成gb2312编码。
+* 总得意思:想要将其他的编码转换成utf-8必须先将其解码成unicode然后重新编码成utf-8,它是以unicode为转换媒介的 如：s='中文' 如果是在utf8的文件中，该字符串就是utf8编码，如果是在gb2312的文件中，则其编码为gb2312。这种情况下，要进行编码转换，都需要先用 decode方法将其转换成unicode编码，再使用encode方法将其转换成其他编码。通常，在没有指定特定的编码方式时，都是使用的系统默认编码创建的代码文件
+
+
+
+#### 3、isdigit()方法
+
+- 检测字符串是否只由数字组成，如果字符串只包含数字，则返回true，否则返回false。
+
+  **str.isdigit**()
+
+
+
+#### 4、startswith() 方法
+
+* 用于检查字符串是否是以指定子字符串开头，如果是则返回 True，否则返回 False。如果参数 beg 和 end 指定值，则在指定范围内检查。
+
+  ~~~python
+  str.startswith(str, beg=0,end=len(string));
+  - str -- 检测的字符串。
+  - strbeg -- 可选参数用于设置字符串检测的起始位置。
+  - strend -- 可选参数用于设置字符串检测的结束位置。
+  ~~~
+
+
+
+#### 5、json数据
+
+* json.dumps 用于将 Python 对象编码成 JSON 字符串。
+
+* json.loads 用于解码 JSON 数据。该函数返回 Python 字段的数据类型。
+
+  
+
+
+
+
+
+### 13、离线安装库
 
 #### 1.pip离线更新安装
 
