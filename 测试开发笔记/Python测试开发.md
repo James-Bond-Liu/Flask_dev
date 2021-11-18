@@ -3598,7 +3598,7 @@ def register():
 
 ##### 2、利用make_response来构造响应
 
-make_response(响应数据， 响应状态码， 响应头)。位置参数的顺序不能错。
+make_response(响应数据， 响应状态码， 响应头)。位置参数的顺序不能错。**实际上是使用的Response()类来创建的。也可以直接利用Response()来创建响应**
 
 **make_response有两种方式构造**
 
@@ -3727,6 +3727,24 @@ def register():
 ~~~
 
 
+
+#### 6、返回响应总结
+
+* 在flask中你想向前端返回数据，必须是`Response`的对象
+
+* from flask import Flask,Response,make_response
+
+* [链接]: https://blog.csdn.net/sa726663676/article/details/117437546
+
+  
+
+解决方案：
+
+* **return直接返回**
+* **make_response+return返回。**（可以结合render_template）
+* **Response+return返回。**（可以结合render_template）
+* **jsonify+return返回**。
+* **render_template+return返回**
 
 
 
@@ -4432,7 +4450,7 @@ app.add_template_global(accept_pattern, 'accent_pattern')  #参数1-被装饰的
 
 
 
-第一种方式
+#### 第一种方式，直接return错误提示
 
 ~~~python
 @app.route('/<phone>/pwd')
@@ -4455,7 +4473,7 @@ def register(phone,pwd):
 
 
 
-第二种方式
+#### 第二种方式，利用abort中的description抛出异常错误提示
 
 ~~~python
 @app.route('/<phone>/pwd')
@@ -4474,20 +4492,23 @@ def register(phone,pwd):
   	return 'welcom to python'
 ~~~
 
-abort(412)，如果description是中文的会乱码，需要指定content-type：text/html;charset=UTF-8
+#### 返回中文异常
 
+abort(412)，如果description是中文的会乱码，需要指定`content-type：text/html;charset=UTF-8`
+
+~~~python
+resp = Response('请输入电话号码'， status='412', content-type='text/html;charset=utf-8')
+abort(resp)
 ~~~
-res = Response('请输入电话号码'， status='412', content-type='text/html;charset=utf-8')
-~~~
 
 
 
-前端需要渲染
+假如前端需要后端渲染
 
-~~~
+~~~python
 if not phone:
 	res = Response(
-		render_template('register.html', msg='请输入电话号码')，status='412', content-type='text/html;charset=utf-8')
+		render_template('register.html', msg='请输入密码')，status='412', content-type='text/html;charset=utf-8')
 	abort(res)
 ~~~
 
