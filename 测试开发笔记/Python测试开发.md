@@ -4493,4 +4493,126 @@ if not phone:
 
 需要考虑的情况：
 
-电话号码为空；电话号码不正确；密码为空
+电话号码为空；电话号码不正确；密码为空；密码长度不够等等
+
+
+
+第三种方式：
+
+将数据校验部分封装为函数
+
+
+
+### 四、验证层
+
+占用视图代码空间：都写到视图函数里面光验证代码就有十几行代码
+
+无法复用：其他的地方如果有相同的验证逻辑又要重写一次
+
+可读性不高：其他的人要一行一行的阅读
+
+
+
+方法1：提取函数
+
+方法2：这个模块是专门用来处理视图的，验证应该放在其它专门的地方
+
+
+
+### 五、WTForms
+
+#### 1、安装
+
+~~~python
+pip install flask-wtf
+from flask_wtf import FlaskForm
+
+# Form 很快就要被移除了
+from flask_wtf import Form
+
+
+pip install -U WTForms
+~~~
+
+
+
+#### 2、快速使用
+
+~~~
+class ReqisterForm(Form):
+	# 字段名最好和表单name属性一致，和数据库里面的字段名一致
+	phone = StringField(validators=[Regexp(r'1[3,5,8]\d{9}$), DataRequired()])
+	pwd = PasswordField(validators=[Length(6,32), DataRequired()])
+	confirm_pwd = PasswordField(EqualTo('pwd'))
+	
+~~~
+
+
+
+~~~
+# 数字校验
+class SearchForm(Form):
+	page = IntegerField(validators=NumberRange(min=0, max=1000))
+~~~
+
+
+
+调用
+
+~~~
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+	form = RegisterForm(request.form)
+	if form.validate():
+		return render_template('注册成功')
+	return render_template('hello.html', form=form)
+~~~
+
+
+
+模板
+
+~~~
+<form action="http://localhost:5000/login/" method="post" id="login">
+	{{ form.username.label }} {{ form.username }}
+	{{ form.pwd.label }} {{ form.pwd }}
+	<input type="submit">
+</form>
+~~~
+
+
+
+设置secret_key:
+
+
+
+解释：
+
+打印form.username:
+
+~~~
+<input id="username" name="username" type="text" value="">
+~~~
+
+如果想改变他们的属性呢？id,name,class
+
+~~~
+class RegisterForm(Form):
+	username = StringField(‘用户名’，validators=[Length(3,3),],id='u')
+~~~
+
+私有变量不要去设置，没有用
+
+
+
+参数说明：
+
+filters，会对输入的参数做进一步的处理，用这个新数据去校验。
+
+~~~
+filters=[lambda x:x+'h',]
+~~~
+
+widget，自定义组件，几乎用不到
+
+render_kw={"class":"form-control}
