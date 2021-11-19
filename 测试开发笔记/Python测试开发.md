@@ -199,7 +199,7 @@ requirements.txt文件记录了当前程序的所有依赖包及版本号，其�
 * 多人开发同一个项目
 
   * 在push修改到远程之前一定要先从远程pull拉取别人已经修改之后的代码（别人修改的内容会体现在本地仓库中，自己的代码也不会消失）
-  * 然后再将代码提交pull、推送push到远程
+  * 然后再将代码提交commit、推送push到远程
 
   
 
@@ -3768,6 +3768,8 @@ Content-Type代表发送端（客户端|服务器）发送的实体数据的数�
 
 ### 四、重定向redirect
 
+#### 1、redirect
+
 重定向有两种方式
 
 * redirect("/new/url")
@@ -3794,6 +3796,38 @@ def index():
 @app.route('/login', methods = ['GET'], endpoint='hhh')
 def login():
     return 'login'
+~~~
+
+#### 2、url_for()
+
+**1.url_for()作用:**
+(1)给指定的函数（端点）构造 URL。
+(2)访问静态文件(CSS / JavaScript 等)。 只要在你的包中或是模块的所在目录中创建一个名为 static 的文件夹，在应用中使用 /static 即可访问。
+
+**1.1给指定的函数构造 URL:**
+它接受函数名（端点名）作为第一个参数，也接受 URL 规则中对应的变量作为参数。未知变量部分会添加到 URL 末尾作为查询参数。
+
+~~~python
+from flask import Flask, url_for
+app = Flask(__name__)
+@app.route('/')
+def index(): pass
+ 
+@app.route('/login')  # 此处装饰器中没有指定视图函数的端点，所以默认endpoint=视图函数名称
+def login(): pass
+ 
+@app.route('/user/<username>')
+def profile(username): pass
+ 
+with app.test_request_context():
+print(url_for('index'))  # /
+print(url_for('login'))  # /login
+ 
+#将未知变量next添加到 URL 末尾作为查询参数
+print(url_for('login', next='/'))  # /login?next=/
+ 
+# 将 URL 规则中对应的变量 username 作为参数
+print(url_for('profile', username='JohnDoe'))  # /user/JohnDoe
 ~~~
 
 
@@ -3870,7 +3904,7 @@ def index():
 ~~~
 
 - `{{ ... }}`：装载一个变量，模板渲染的时候，会使用传进来的同名参数这个变量代表的值替换掉。
-- `{% ... %}`：装载一个控制语句。
+- `{% ... %}`：装载一个逻辑控制语句。
 - `{# ... #}`：装载一个注释，模板渲染的时候会忽视这中间的值。
 
 
