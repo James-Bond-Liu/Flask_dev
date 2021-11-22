@@ -4416,7 +4416,7 @@ app.add_template_global(accept_pattern, 'accent_pattern')  #参数1-被装饰的
 子模板
 
 ~~~jinja2
-{% extens "baseage.html" %}
+{% extends "baseage.html" %}
 
 {% block title %} demo-herit {% endblock %}
 
@@ -4576,17 +4576,18 @@ if not phone:
 
 ### 五、WTForms
 
+* 表单验证的一种工具
+
 #### 1、安装
 
 ~~~python
 pip install flask-wtf
+pip install -U wtforms
+
 from flask_wtf import FlaskForm
 
 # Form 很快就要被移除了
 from flask_wtf import Form
-
-
-pip install -U WTForms
 ~~~
 
 
@@ -4595,7 +4596,7 @@ pip install -U WTForms
 
 ~~~
 class ReqisterForm(Form):
-	# 字段名最好和表单name属性一致，和数据库里面的字段名一致
+	# 字段名最好和表单name属性一致，最好和数据库里面的字段名一致
 	phone = StringField(validators=[Regexp(r'1[3,5,8]\d{9}$), DataRequired()])
 	pwd = PasswordField(validators=[Length(6,32), DataRequired()])
 	confirm_pwd = PasswordField(EqualTo('pwd'))
