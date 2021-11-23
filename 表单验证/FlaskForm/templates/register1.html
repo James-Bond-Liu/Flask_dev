@@ -5,8 +5,13 @@
     <title>用户注册</title>
 </head>
 <body>
+
+{# 直接用html语句编写前端页面 #}
+
 {{ msg }}
 <form action="{{ url_for('register') }}" method="post">
+<!--  form.csrf_token是用来将csrf_token返回给前端，前端在post请求时携带token至后端进行校验  -->
+    {{ form.csrf_token }}
 <label for="">手机号码：</label><input name="phone">
 <label for="">密码：</label><input type="password" name="pwd">
 <label for="">确认密码</label><input type="password" name="confirm_pwd">

@@ -4542,7 +4542,7 @@ abort(resp)
 ~~~python
 if not phone:
 	res = Response(
-		render_template('register.html', msg='请输入密码')，status='412', content-type='text/html;charset=utf-8')
+		render_template('register1.html', msg='请输入密码')，status='412', content-type='text/html;charset=utf-8')
 	abort(res)
 ~~~
 
@@ -4595,11 +4595,11 @@ from flask_wtf import Form
 #### 2、快速使用
 
 ~~~
-class ReqisterForm(Form):
+class RegisterForm(Form):
 	# 字段名最好和表单name属性一致，最好和数据库里面的字段名一致
 	phone = StringField(validators=[Regexp(r'1[3,5,8]\d{9}$), DataRequired()])
 	pwd = PasswordField(validators=[Length(6,32), DataRequired()])
-	confirm_pwd = PasswordField(EqualTo('pwd'))
+	confirm_pwd = PasswordField(validators=[EqualTo('pwd')])
 	
 ~~~
 
@@ -4616,6 +4616,8 @@ class SearchForm(Form):
 调用
 
 ~~~
+import RegisterForm
+
 @app.route("/login", methods=['GET', 'POST'])
 def login():
 	form = RegisterForm(request.form)
@@ -4626,7 +4628,9 @@ def login():
 
 
 
-模板
+模板--表单渲染
+
+* 通过FlaskForm类将form表单数据渲染回前端，可以利用数据构造出表单（而不用写HTML语句）
 
 ~~~
 <form action="http://localhost:5000/login/" method="post" id="login">
@@ -4638,7 +4642,13 @@ def login():
 
 
 
-设置secret_key:
+flask中设置secret_key:
+
+~~~
+app.config['SECRET_KEY'] = '随意字符串'
+# 或者利用os.urandom(字节位数)进行构造
+app.config['SECRET_KEY'] = os.urandom(24)
+~~~
 
 
 
@@ -4650,7 +4660,7 @@ def login():
 <input id="username" name="username" type="text" value="">
 ~~~
 
-如果想改变他们的属性呢？id,name,class
+如果想改变他们的属性呢？比如：id,name,class
 
 ~~~
 class RegisterForm(Form):
@@ -4661,9 +4671,9 @@ class RegisterForm(Form):
 
 
 
-参数说明：
+Field类初始化参数说明：
 
-filters，会对输入的参数做进一步的处理，用这个新数据去校验。
+filters：会对输入的参数做进一步的处理，用这个新数据去校验。
 
 ~~~
 filters=[lambda x:x+'h',]
@@ -4671,4 +4681,110 @@ filters=[lambda x:x+'h',]
 
 widget，自定义组件，几乎用不到
 
-render_kw={"class":"form-control}
+render_kw={"class":"form-control"}
+
+
+
+默认值
+
+~~~
+class SearchForm(Form):
+	page = InterField(validators=[NumberRange(min=0,max=1000), default=0]) # defalut=0,代表了当form表单中page属性没有内容时，默认以“0”进行验证
+~~~
+
+
+
+Form类中几个重要函数
+
+validate：验证主函数
+
+process：验证数据，BaseForm里
+
+data：获取前端发送至后台所有数据
+
+errors：获取错误信息
+
+
+
+几种数据类型类
+
+FloatField
+
+DecimalField
+
+DateField
+
+RadioField
+
+SelectField
+
+对应于HTML里面的元素，后面主要时用来通过form参数渲染模板。每一种不同的类型本质上还是一个HTML格式的字符串的封装，放在widge属性里面
+
+
+
+几种常见的validator
+
+Length
+
+EqualTo
+
+NumberRange
+
+DataRequired（重要）
+
+InputRequired
+
+Regexp（正则匹配）
+
+IPAdress
+
+URL
+
+
+
+EqualTo==第二次输入密码等于第一次输入的密码
+
+Regexp电话号码：validators=[Regexp('^1[3|4|5|7|8]\d{9}$') ]
+
+
+
+展示错误信息
+
+~~~jinja2
+{{ form.pwd_confirm.errors }}
+~~~
+
+
+
+
+
+整体执行逻辑
+
+~~~
+在app主程序入口处通过form = RegisterForm(request.form)来获取前端传送至后台的表单数据。
+
+form.validate()实际上通过for循环验证数据是否符合验证器的要求。
+
+而验证器的要求则直接保存在validators中。
+
+当validators判断失败，不符合规则，则会抛出异常被validate()捕获，返回form.errors
+~~~
+
+
+
+
+
+自定义校验器
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -23,7 +23,7 @@ app = Flask(__name__)
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
-        return render_template('register.html')
+        return render_template('register1.html')
     else:
         # test(request.form)
         phone = request.form.get('phone')
@@ -48,7 +48,7 @@ def register():
 
         if not pwd:
             # 提示密码为空，后端提供变量对前端进行渲染
-            resp = Response(response=render_template('register.html', msg='密码不能为空'), status=412, content_type='text/html;charset=utf-8')
+            resp = Response(response=render_template('register1.html', msg='密码不能为空'), status=412, content_type='text/html;charset=utf-8')
             abort(resp)
         if pwd != confirm_pwd:
             # 提示两次密码不相同

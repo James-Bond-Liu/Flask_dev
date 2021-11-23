@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户注册</title>
+</head>
+<body>
+{# 通过FlasForm定义的验证函数获取的form表单数据返回至前端渲染，编写前端页面 #}
+{{ msg }}
+<form action="{{ url_for('register') }}" method="post">
+    {{ form.phone.label }} {{ form.phone }}  {{ form.phone.errors }}
+    {{ form.pwd.label }} {{ form.pwd }}
+    {{ form.confirm_pwd.label }} {{ form.confirm_pwd }}
+    <input type="submit">
+<!--  form.csrf_token是用来将csrf_token返回给前端，前端在post请求时携带token至后端进行校验  -->
+    {{ form.csrf_token }}
+</form>
+</body>
+</html>
