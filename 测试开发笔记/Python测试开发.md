@@ -4594,8 +4594,10 @@ from flask_wtf import Form
 
 #### 2、快速使用
 
-~~~
-class RegisterForm(Form):
+##### 定义验证器
+
+~~~python
+class RegisterForm(FlaskForm):
 	# 字段名最好和表单name属性一致，最好和数据库里面的字段名一致
 	phone = StringField(validators=[Regexp(r'1[3,5,8]\d{9}$), DataRequired()])
 	pwd = PasswordField(validators=[Length(6,32), DataRequired()])
@@ -4605,17 +4607,17 @@ class RegisterForm(Form):
 
 
 
-~~~
+~~~python
 # 数字校验
-class SearchForm(Form):
+class SearchForm(FlaskForm):
 	page = IntegerField(validators=NumberRange(min=0, max=1000))
 ~~~
 
 
 
-调用
+##### 调用验证器
 
-~~~
+~~~python
 import RegisterForm
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -4628,27 +4630,38 @@ def login():
 
 
 
-模板--表单渲染
+##### flask中设置secret_key
+
+* 前后端需要进行前后端数据交互时需要设置密钥
+* 当视图函数中需要调用验证器进行数据校验时，需要在app中设置
+
+~~~python
+app.config['SECRET_KEY'] = '随意字符串'
+
+或者利用os.urandom(字节位数)进行构造
+
+app.config['SECRET_KEY'] = os.urandom(24)
+~~~
+
+
+
+##### 模板--表单渲染
 
 * 通过FlaskForm类将form表单数据渲染回前端，可以利用数据构造出表单（而不用写HTML语句）
 
-~~~
+~~~html
 <form action="http://localhost:5000/login/" method="post" id="login">
 	{{ form.username.label }} {{ form.username }}
 	{{ form.pwd.label }} {{ form.pwd }}
 	<input type="submit">
+    {{ form.csrf_token }}  {# csrf_token 必须添加在form标签内部 #}
 </form>
 ~~~
 
+* csrf_token
+* 需要在templates的form中加入{{ form.csrf_token }}这串内容，它的作用是当我们get表单页面时，服务器返回页面的同时也会向前端返回一串随机字符，post提交时服务器会验证这串字符来确保用户是在服务端返回的表单页面中提交的数据，防止有人通过例如jquery脚本向某个url不断提交数据，是一种数据提交的验证机制。
 
 
-flask中设置secret_key:
-
-~~~
-app.config['SECRET_KEY'] = '随意字符串'
-# 或者利用os.urandom(字节位数)进行构造
-app.config['SECRET_KEY'] = os.urandom(24)
-~~~
 
 
 
@@ -4671,7 +4684,7 @@ class RegisterForm(Form):
 
 
 
-Field类初始化参数说明：
+##### Field类初始化参数说明：
 
 filters：会对输入的参数做进一步的处理，用这个新数据去校验。
 
@@ -4679,54 +4692,43 @@ filters：会对输入的参数做进一步的处理，用这个新数据去校�
 filters=[lambda x:x+'h',]
 ~~~
 
-widget，自定义组件，几乎用不到
+widget：自定义组件，几乎用不到
 
-render_kw={"class":"form-control"}
+render_kw：render_kw={"class":"form-control"}用来给前端某个标签增加属性{属性名：属性值}
 
-
-
-默认值
+default：默认值
 
 ~~~
 class SearchForm(Form):
-	page = InterField(validators=[NumberRange(min=0,max=1000), default=0]) # defalut=0,代表了当form表单中page属性没有内容时，默认以“0”进行验证
+	page = InterField(validators=[NumberRange(min=0,max=1000), default=0]) # defalut=0,代表了当form表单中page没有数据时，默认以“0”进行验证
 ~~~
 
 
 
-Form类中几个重要函数
+##### form对象中几个重要函数
 
-validate：验证主函数
+form = RegisterForm(request.form)
 
-process：验证数据，BaseForm里
-
-data：获取前端发送至后台所有数据
-
-errors：获取错误信息
-
+* form.validate()：验证主函数
+* form.process()：验证数据，BaseForm里
+* form.data：获取前端发送至后台所有数据
+* form.errors：获取错误信息
 
 
-几种数据类型类
 
-FloatField
+##### 几种数据类型类
 
-DecimalField
-
-DateField
-
-RadioField
-
-SelectField
+FloatField、DecimalField、DateField、RadioField、SelectField
 
 对应于HTML里面的元素，后面主要时用来通过form参数渲染模板。每一种不同的类型本质上还是一个HTML格式的字符串的封装，放在widge属性里面
 
 
 
-几种常见的validator
+##### 几种常见的validators
 
 Length
 
-EqualTo
+EqualTo：例如第二次输入密码等于第一次输入的密码
 
 NumberRange
 
@@ -4734,7 +4736,7 @@ DataRequired（重要）
 
 InputRequired
 
-Regexp（正则匹配）
+Regexp（正则匹配）：电话号码validators=[Regexp('^1[3|4|5|7|8]\d{9}$') ]
 
 IPAdress
 
@@ -4742,13 +4744,7 @@ URL
 
 
 
-EqualTo==第二次输入密码等于第一次输入的密码
-
-Regexp电话号码：validators=[Regexp('^1[3|4|5|7|8]\d{9}$') ]
-
-
-
-展示错误信息
+前端展示错误信息
 
 ~~~jinja2
 {{ form.pwd_confirm.errors }}
@@ -4756,9 +4752,7 @@ Regexp电话号码：validators=[Regexp('^1[3|4|5|7|8]\d{9}$') ]
 
 
 
-
-
-整体执行逻辑
+##### 整体执行逻辑
 
 ~~~
 在app主程序入口处通过form = RegisterForm(request.form)来获取前端传送至后台的表单数据。
@@ -4774,7 +4768,29 @@ form.validate()实际上通过for循环验证数据是否符合验证器的要�
 
 
 
-自定义校验器
+#### 自定义校验器
+
+项目名在数据库中已存在
+
+第一种方法
+
+~~~
+class ProjectInForm(FlaskForm):
+	# TODO: project_name唯一性
+	project_name = StringField(label='项目名称', validators=[DataReqired(), Length(max=66,min=1)])
+	simple_desc = TextAreaField(label='项目描述', validators=[Length(max=512,min=0)])
+	
+	# 指定对应的数据库模型
+	form_model = ProjectInfo
+	
+	def validate_name(self):
+	"""验证名字是否唯一"""
+		not_unique = self.form_model.query.filter_by(prject_name=self.project_nmae).first()
+		if not_unique:
+			raise ValidationError('项目名称已经存在')
+			
+# 在视图函数中调用validate_name进行判断（ProjectInForm)
+~~~
 
 
 
@@ -4782,7 +4798,50 @@ form.validate()实际上通过for循环验证数据是否符合验证器的要�
 
 
 
+第二中方法，模仿其他的validator:
 
+~~~
+class Unique:
+	"""验证数据库中是否唯一"""
+	def __init__(self, db_class, db_column, msg=None):
+		self.db_class = db_class
+		self.db_column = db_column
+		if msg is None:
+			msg = "该数据在数据库中已存在"
+		self.msg = msg
+		
+	def __call__(self, form, filed):
+		not_unique = self.db_class.query.filter(self.db_column==filed.data).first()
+		if not_unique:
+			raise ValidationError(self.msg)
+		return filed.data
+
+# form 里面
+project_name = StringField(label='项目名称', validators = [DataRequired(), Length(max=66, min=1), Unique(form_model, form_model.project_name)])
+		
+~~~
+
+
+
+自定义电话号码：
+
+~~~
+class Mobile(object):
+	user_regex = re.compile('^1[3|4|5|7|8]\d{9}$']')
+	
+	def __init__(self, message=None):
+		self.message = message
+	
+	def __call__(self, form, field):
+		value = field.data
+		message = self.message
+		if message is None:
+			message = field.gettext('Invalid mobile address')
+		match = self.user_regex.match(value or '')
+		if not match:
+			raise ValueError(message)
+		return match
+~~~
 
 
 
