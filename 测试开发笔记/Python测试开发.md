@@ -4716,31 +4716,51 @@ form = RegisterForm(request.form)
 
 
 
-##### 几种数据类型类
-
-FloatField、DecimalField、DateField、RadioField、SelectField
+##### Field字段
 
 对应于HTML里面的元素，后面主要时用来通过form参数渲染模板。每一种不同的类型本质上还是一个HTML格式的字符串的封装，放在widge属性里面
 
+WTForms支持HTML字段：
+
+| 字段类型            | 说明                                       |
+| ------------------- | ------------------------------------------ |
+| StringField         | 文本字段， 相当于type类型为text的input标签 |
+| TextAreaField       | 多行文本字段                               |
+| PasswordField       | 密码文本字段                               |
+| HiddenField         | 隐藏文本字段                               |
+| DateField           | 文本字段， 值为datetime.date格式           |
+| DateTimeField       | 文本字段， 值为datetime.datetime格式       |
+| IntegerField        | 文本字段， 值为整数                        |
+| DecimalField        | 文本字段， 值为decimal.Decimal             |
+| FloatField          | 文本字段， 值为浮点数                      |
+| BooleanField        | 复选框， 值为True 和 False                 |
+| RadioField          | 一组单选框                                 |
+| SelectField         | 下拉列表                                   |
+| SelectMultipleField | 下拉列表， 可选择多个值                    |
+| FileField           | 文件上传字段                               |
+| SubmitField         | 表单提交按钮                               |
+| FormFiled           | 把表单作为字段嵌入另一个表单               |
+| FieldList           | 子组指定类型的字段                         |
 
 
-##### 几种常见的validators
 
-Length
+##### Validators验证器
 
-EqualTo：例如第二次输入密码等于第一次输入的密码
+WTForms可以支持很多表单的验证函数：
 
-NumberRange
-
-DataRequired（重要）
-
-InputRequired
-
-Regexp（正则匹配）：电话号码validators=[Regexp('^1[3|4|5|7|8]\d{9}$') ]
-
-IPAdress
-
-URL
+| 验证函数     | 说明                                                    |
+| ------------ | ------------------------------------------------------- |
+| Email        | 验证是电子邮件地址                                      |
+| EqualTo      | 比较两个字段的值； 常用于要求输入两次密钥进行确认的情况 |
+| IPAddress    | 验证IPv4网络地址                                        |
+| Length       | 验证输入字符串的长度                                    |
+| NumberRange  | 验证输入的值在数字范围内                                |
+| Optional     | 无输入值时跳过其它验证函数                              |
+| DataRequired | 确保字段中有数据                                        |
+| Regexp       | 使用正则表达式验证输入值                                |
+| URL          | 验证url                                                 |
+| AnyOf        | 确保输入值在可选值列表中                                |
+| NoneOf       | 确保输入值不在可选列表中                                |
 
 
 
@@ -4768,7 +4788,7 @@ form.validate()实际上通过for循环验证数据是否符合验证器的要�
 
 
 
-#### 自定义校验器
+#### 自定义Validators验证器
 
 项目名在数据库中已存在
 
