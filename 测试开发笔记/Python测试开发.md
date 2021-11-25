@@ -4786,6 +4786,14 @@ form.validate()实际上通过for循环验证数据是否符合验证器的要�
 
 
 
+#### 常见内置的Validators验证器
+
+
+
+
+
+
+
 
 
 #### 自定义Validators验证器
@@ -4865,5 +4873,187 @@ class Mobile(object):
 
 
 
+自定义账号是否存在
 
+~~~python
+from wtforms.fields import (StringField, PasswordField, DateField, BooleanField, SelectField, SelectMultipleField, TextAreaField, RadioField, IntegerField, DecimalField, SubmitField)
+from wtforms.validators import DataRequired, Length, Email，EqualTo, NumberRange
+
+class RegisterForm(Form):
+	# Text Field类型，文本输入框，必填，用户名长度为4到25之间
+	username = StringField('username', validators=[Length(min=4, max=25)])
+	
+	# Text Field类型，文本输入框，Email格式
+	email = StringField('Email Address', validators=[Email()])
+	
+	# PasswordField类型，密码输入框，必填，必须同confirm字段一致
+	password = PasswordField('Password', validators=[DataRequired(), EqualTo('confirm', message='Passwords must match')])
+	
+	# Text Field类型，密码输入框
+	confirm = PasswordField('Repeat Password', validators=[DataRequired()])
+	
+	# Text Field类型, 文本输入框，必须输入整型数值，范围在16到70之间
+	age = IntegerField('Age', validators=[NumberRange(min=16, max=70)])
+	
+	# Text Field类型，文本输入框，必须输入数值，显示时保留一位小数
+	height = DecimalField('Height(Centimeter)', places=1)
+	
+	# Text Field类型，文本输入框，必须输入”年-月-日“格式的日期
+	birthday = DateField('Birthday', format='%Y-%m-%d')
+	
+	# Radio Box类型，单选框，choices里的内容会在ul标签里，里面每个项是（value值， 显示名称）对
+	gender = RadioField('Gender', choices=[('m', 'Male'), ('f', 'Female')], validators=[DataRequired()])
+	
+	# Select类型，下拉单选框，choices里的内容会在Option里，里面每个项是（值，显示名）对
+	job = SelectField('Job', choices=[
+		('teacher', 'Teacher'),
+		('doctor', 'Doctor'),
+		('engineer', 'Engineer'),
+		('lawyer', 'Lawyer')])
+		
+	# Select类型，多选框，choices里面的内容会在Option里，里面每个项是（value值，显示名称）对
+	hobby = SelectMultipleField('Hobby', choices=[
+		('swim', 'swimming'),
+		('skate', 'Skating'),
+		('hike', 'hiking')])
+	
+	# Text Area类型，段落输入框
+	description = TextAreaField('Introduction of yourself')
+	
+	# Checkbox类型，加上default= 'checked'即默认是选择上的
+	accept_terms = BooleanField('I accept the Terms of Use', default='checked', validators=[DataRequired()])
+	
+	# Submit按钮
+	submit = SubmitField('Register')
+	
+	
+~~~
+
+
+
+
+
+8、Form初始化数据
+
+formdata，flask，django里的multidict，请求里的content-type是application/x-www-form-urlencoded
+
+obj
+
+data：字典形式的数组
+
+
+
+9、如何验证json、Ajax
+
+1、request，发送json数据
+
+~~~
+res = requests.post('http://localhost:5000/login/', data ={"username":"123", "pwd":"123456"})
+print(res.text)
+
+# 把data换成json，在服务端打印request.headers, 比较content-type的区别
+
+~~~
+
+
+
+视图函数：
+
+~~~
+json_data = request.json
+form = RegisterForm(data=json_data)
+
+~~~
+
+
+
+
+
+### 六、跨站脚本攻击（xss）
+
+跨站脚本攻击是指在一个网站的环境中注入恶意的HTML（包括附带的JavaScript）。要防御这种攻击，开发者需要正确的转义文本，使其不能包含恶意的HTML标记。
+
+* 不要让用户给你传HTML，JS
+* 脚本，对文本进行正确的转义
+
+
+
+#### 7、CSRF跨站请求伪造
+
+
+
+![image-20211125152612868](Python测试开发.assets/image-20211125152612868.png)
+
+八、Secert Key
+
+对于每个要求修改服务器内容的要求，应该使用一次性token，并存储在cookie里，并且在发送表单数据的同时附上它。在服务器再次接收数据之后，需要比较两个token，并确保它们相等。
+
+随机生成Secret Key：os.urandom(24)
+
+
+
+模板渲染表单
+
+通过wtform表单验证器渲染前端表单
+
+~~~python
+@app.route('/register',methods='GET','POST')
+def register():
+	form = RegisterForm(request.form)
+	if request.method.lower() == 'get':
+		return render_template('login.html', form=form)
+	
+	if form.validate():
+		return '测试通过'
+	
+	msg = form.errors
+	return render_template('login.html', form=form, msg=msg)
+~~~
+
+
+
+HTML
+
+~~~html
+{{ msg }}
+<form method='PSOT' action="{{ url_for('register') }}">
+    <table>
+        <tr>
+        	<td>{{ form.phone.label }}</td>
+            <td>{{ form.phone | safe }}</td>
+        </tr>
+        <tr>
+        	<td>{{ form.phone.label }}</td>
+            <td>{{ form.phone | safe }}</td>
+        </tr>
+        <tr>
+        	<td>{{ form.phone.label }}</td>
+            <td>{{ form.phone | safe }}</td>
+        </tr>
+    </table>
+    {{ form.submit }}
+</form>
+~~~
+
+
+
+Ajax
+
+最好为所有的路由配置SCRF保护
+
+~~~javascript
+scrf = SCRFProtect(app)
+
+# 配置可以公用
+SECRET_KEY = 'ghfdghoh23rtyergdhfgklerh6856798fgsdfgjhgm'
+# 或者独立的
+WTF_CSRF_SECRET_KEY = 'this is a csrf'
+
+# 模板
+<meta name="csrf-token" content="{{ csrf_token() }}">
+# 或者在js里
+var csrf_token = "{{ csrf_token() }}"
+~~~
+
+注意：最好在渲染的模板里写对应的ajax代码，提取出来获取不到对应的csrf_token
 
