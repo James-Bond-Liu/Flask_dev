@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField
+from wtforms import StringField, PasswordField, SelectField
 from wtforms.validators import DataRequired, Regexp, Length, EqualTo
 
 """
@@ -21,3 +21,9 @@ class RegisterForm(FlaskForm):
 								render_kw={"class":"form-control"},# render_kw用来给某个标签增加属性{属性名：属性值}
 								filters=[lambda x: str(x) + 'l'],
 								default=0)  # 此标签不输入数据时，默认为0
+
+	job = SelectField('Job', choices=[
+		('teacher', 'Teacher'),
+		('doctor', 'Doctor'),
+		('engineer', 'Engineer'),
+		('lawyer', 'Lawyer')])
