@@ -8,19 +8,17 @@ app.config['SECRET_KEY'] = os.urandom(10)  # 利用urandom方法生成10位的�
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm(formdata=request.form,
-        obj=None,
-        prefix="",
-        data=None,
-        meta=None,)
+        data=None)
     """
     RegisterForm类继承FlaskForm类，初始化参数formdata,obj,data
+    当前端通过form表单提交数据时，服务端通过formdata参数来接收数据。
+    当前端发送Ajax请求或者以json格式发送数据时，服务端通过data参数来接收数据。
     formdata用来接收前端以form表单提交至后台的数据，优先级最高
-    obj：用来接收前端以json格式将数据提交至后台的数据，当formdata为空时，使用
     data：用来接收前端以json格式将数据提交至后台的数据，当formdata、obj为空时，使用
     """
 
     if request.method == 'GET':
-        return render_template('register1.html', form = form)
+        return render_template('register2.html', form = form)
     else:
         phone = request.form.get('phone')
         pwd = request.form.get('pwd')

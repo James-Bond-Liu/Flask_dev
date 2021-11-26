@@ -4603,11 +4603,6 @@ class RegisterForm(FlaskForm):
 	pwd = PasswordField(validators=[Length(6,32), DataRequired()])
 	confirm_pwd = PasswordField(validators=[EqualTo('pwd')])
 	
-~~~
-
-
-
-~~~python
 # 数字校验
 class SearchForm(FlaskForm):
 	page = IntegerField(validators=NumberRange(min=0, max=1000))
@@ -4615,14 +4610,15 @@ class SearchForm(FlaskForm):
 
 
 
-##### 调用验证器
+##### 服务端l调用验证器
 
 ~~~python
 import RegisterForm
+app.config['SECRET_KEY'] = os.urandom(24)
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-	form = RegisterForm(request.form)
+	form = RegisterForm(fromdata=request.form)
 	if form.validate():
 		return render_template('注册成功')
 	return render_template('hello.html', form=form)
@@ -4632,7 +4628,7 @@ def login():
 
 ##### flask中设置secret_key
 
-* 前后端需要进行前后端数据交互时需要设置密钥
+* 前后端需要进行前后端数据交互，表单验证时需要设置密钥
 * 当视图函数中需要调用验证器进行数据校验时，需要在app中设置
 
 ~~~python
@@ -4645,78 +4641,88 @@ app.config['SECRET_KEY'] = os.urandom(24)
 
 
 
-##### 模板--表单渲染
+##### Form初始化数据
+
+formdata：请求里的content-type是application/x-www-form-urlencoded，用来接收form表单形式的数据
+
+obj：
+
+data：字典形式的数组，用来接收json格式的数据
+
+
+
+##### 如何验证json、Ajax数据
+
+1、前端通过form表单提交数据
+
+视图函数通过formdata参数接收数据
+
+~~~python
+form = RegisterForm(formdata=request.form)
+~~~
+
+
+
+2、request，发送json数据
+
+视图函数通过data参数接收json数据
+
+~~~python
+form = RegisterForm(data=request.json)
+~~~
+
+
+
+
+
+
+
+#### 3、详情解析
+
+##### 1、模板--表单渲染
 
 * 通过FlaskForm类将form表单数据渲染回前端，可以利用数据构造出表单（而不用写HTML语句）
 
 ~~~html
 <form action="http://localhost:5000/login/" method="post" id="login">
-	{{ form.username.label }} {{ form.username }}
+	{{ form.username.label }} {{ form.username }}  {{ form.username.errors }} {# 在前端展示某一个字段错误信息 #}
 	{{ form.pwd.label }} {{ form.pwd }}
 	<input type="submit">
     {{ form.csrf_token }}  {# csrf_token 必须添加在form标签内部 #}
 </form>
 ~~~
 
-* csrf_token
-* 需要在templates的form中加入{{ form.csrf_token }}这串内容，它的作用是当我们get表单页面时，服务器返回页面的同时也会向前端返回一串随机字符，post提交时服务器会验证这串字符来确保用户是在服务端返回的表单页面中提交的数据，防止有人通过例如jquery脚本向某个url不断提交数据，是一种数据提交的验证机制。
+
+
+##### 2、csrf_token
+
+* csrf_token，只要利用wtforms进行表单验证，会自动进行csrf_token 验证
+* 需要在templates的form标签中加入{{ form.csrf_token }}这串内容，它的作用是当我们get表单页面时，服务器返回页面的同时也会向前端返回一串随机字符，post提交时服务器会验证这串字符来确保用户是在服务端返回的表单页面中提交的数据，防止有人通过例如jquery脚本向某个url不断提交数据，是一种数据提交的验证机制。
 
 
 
+##### 3、Field字段初始化参数：
 
-
-解释：
-
-打印form.username:
-
-~~~
-<input id="username" name="username" type="text" value="">
-~~~
-
-如果想改变他们的属性呢？比如：id,name,class
-
-~~~
-class RegisterForm(Form):
-	username = StringField(‘用户名’，validators=[Length(3,3),],id='u')
-~~~
-
-私有变量不要去设置，没有用
-
-
-
-##### Field类初始化参数说明：
-
-filters：会对输入的参数做进一步的处理，用这个新数据去校验。
+**filters**：会对输入的参数做进一步的处理，用这个新数据去校验。
 
 ~~~
 filters=[lambda x:x+'h',]
 ~~~
 
-widget：自定义组件，几乎用不到
+**widget**：自定义组件，几乎用不到
 
-render_kw：render_kw={"class":"form-control"}用来给前端某个标签增加属性{属性名：属性值}
+**render_kw**：render_kw={"class":"form-control"}用来给前端某个标签增加属性{属性名：属性值}
 
-default：默认值
+**default**：默认值
 
 ~~~
-class SearchForm(Form):
+class SearchForm(FlaskForm):
 	page = InterField(validators=[NumberRange(min=0,max=1000), default=0]) # defalut=0,代表了当form表单中page没有数据时，默认以“0”进行验证
 ~~~
 
 
 
-##### form对象中几个重要函数
-
-form = RegisterForm(request.form)
-
-* form.validate()：验证主函数
-* form.process()：验证数据，BaseForm里
-* form.data：获取前端发送至后台所有数据
-* form.errors：获取错误信息
-
-
-
-##### Field字段
+##### 4、Field字段
 
 对应于HTML里面的元素，后面主要时用来通过form参数渲染模板。每一种不同的类型本质上还是一个HTML格式的字符串的封装，放在widge属性里面
 
@@ -4744,7 +4750,7 @@ WTForms支持HTML字段：
 
 
 
-##### Validators验证器
+##### 5、Validators验证器
 
 WTForms可以支持很多表单的验证函数：
 
@@ -4764,116 +4770,20 @@ WTForms可以支持很多表单的验证函数：
 
 
 
-前端展示错误信息
+##### 6、form对象中几个重要函数
 
-~~~jinja2
-{{ form.pwd_confirm.errors }}
-~~~
+form = RegisterForm(request.form)
 
-
-
-##### 整体执行逻辑
-
-~~~
-在app主程序入口处通过form = RegisterForm(request.form)来获取前端传送至后台的表单数据。
-
-form.validate()实际上通过for循环验证数据是否符合验证器的要求。
-
-而验证器的要求则直接保存在validators中。
-
-当validators判断失败，不符合规则，则会抛出异常被validate()捕获，返回form.errors
-~~~
+* form.validate()：验证主函数
+* form.process()：验证数据，BaseForm里
+* form.data：获取前端发送至后台所有数据
+* form.errors：获取错误信息
 
 
 
-#### 常见内置的Validators验证器
+#### 4、常见内置的Validators验证器
 
-
-
-
-
-
-
-
-
-#### 自定义Validators验证器
-
-项目名在数据库中已存在
-
-第一种方法
-
-~~~
-class ProjectInForm(FlaskForm):
-	# TODO: project_name唯一性
-	project_name = StringField(label='项目名称', validators=[DataReqired(), Length(max=66,min=1)])
-	simple_desc = TextAreaField(label='项目描述', validators=[Length(max=512,min=0)])
-	
-	# 指定对应的数据库模型
-	form_model = ProjectInfo
-	
-	def validate_name(self):
-	"""验证名字是否唯一"""
-		not_unique = self.form_model.query.filter_by(prject_name=self.project_nmae).first()
-		if not_unique:
-			raise ValidationError('项目名称已经存在')
-			
-# 在视图函数中调用validate_name进行判断（ProjectInForm)
-~~~
-
-
-
-
-
-
-
-第二中方法，模仿其他的validator:
-
-~~~
-class Unique:
-	"""验证数据库中是否唯一"""
-	def __init__(self, db_class, db_column, msg=None):
-		self.db_class = db_class
-		self.db_column = db_column
-		if msg is None:
-			msg = "该数据在数据库中已存在"
-		self.msg = msg
-		
-	def __call__(self, form, filed):
-		not_unique = self.db_class.query.filter(self.db_column==filed.data).first()
-		if not_unique:
-			raise ValidationError(self.msg)
-		return filed.data
-
-# form 里面
-project_name = StringField(label='项目名称', validators = [DataRequired(), Length(max=66, min=1), Unique(form_model, form_model.project_name)])
-		
-~~~
-
-
-
-自定义电话号码：
-
-~~~
-class Mobile(object):
-	user_regex = re.compile('^1[3|4|5|7|8]\d{9}$']')
-	
-	def __init__(self, message=None):
-		self.message = message
-	
-	def __call__(self, form, field):
-		value = field.data
-		message = self.message
-		if message is None:
-			message = field.gettext('Invalid mobile address')
-		match = self.user_regex.match(value or '')
-		if not match:
-			raise ValueError(message)
-		return match
-~~~
-
-
-
-自定义账号是否存在
+场景：自定义账号是否存在
 
 ~~~python
 from wtforms.fields import (StringField, PasswordField, DateField, BooleanField, SelectField, SelectMultipleField, TextAreaField, RadioField, IntegerField, DecimalField, SubmitField)
@@ -4931,39 +4841,96 @@ class RegisterForm(Form):
 
 
 
+#### 5、自定义Validators验证器
 
+项目名在数据库中已存在
 
-8、Form初始化数据
-
-formdata，flask，django里的multidict，请求里的content-type是application/x-www-form-urlencoded
-
-obj
-
-data：字典形式的数组
-
-
-
-9、如何验证json、Ajax
-
-1、request，发送json数据
+第一种方法
 
 ~~~
-res = requests.post('http://localhost:5000/login/', data ={"username":"123", "pwd":"123456"})
-print(res.text)
-
-# 把data换成json，在服务端打印request.headers, 比较content-type的区别
-
+class ProjectInForm(FlaskForm):
+	# TODO: project_name唯一性
+	project_name = StringField(label='项目名称', validators=[DataReqired(), Length(max=66,min=1)])
+	simple_desc = TextAreaField(label='项目描述', validators=[Length(max=512,min=0)])
+	
+	# 指定对应的数据库模型
+	form_model = ProjectInfo
+	
+	def validate_name(self):
+	"""验证名字是否唯一"""
+		not_unique = self.form_model.query.filter_by(prject_name=self.project_nmae).first()
+		if not_unique:
+			raise ValidationError('项目名称已经存在')
+			
+# 在视图函数中调用validate_name进行判断（ProjectInForm)
 ~~~
 
 
 
-视图函数：
+第二中方法，模仿其他的validator:
 
 ~~~
-json_data = request.json
-form = RegisterForm(data=json_data)
+class Unique:
+	"""验证数据库中是否唯一"""
+	def __init__(self, db_class, db_column, msg=None):
+		self.db_class = db_class
+		self.db_column = db_column
+		if msg is None:
+			msg = "该数据在数据库中已存在"
+		self.msg = msg
+		
+	def __call__(self, form, filed):
+		not_unique = self.db_class.query.filter(self.db_column==filed.data).first()
+		if not_unique:
+			raise ValidationError(self.msg)
+		return filed.data
+
+# form 里面
+project_name = StringField(label='项目名称', validators = [DataRequired(), Length(max=66, min=1), Unique(form_model, form_model.project_name)])
+		
+~~~
+
+
+
+自定义电话号码：
 
 ~~~
+class Mobile(object):
+	user_regex = re.compile('^1[3|4|5|7|8]\d{9}$']')
+	
+	def __init__(self, message=None):
+		self.message = message
+	
+	def __call__(self, form, field):
+		value = field.data
+		message = self.message
+		if message is None:
+			message = field.gettext('Invalid mobile address')
+		match = self.user_regex.match(value or '')
+		if not match:
+			raise ValueError(message)
+		return match
+~~~
+
+
+
+
+
+
+
+#### 6、整体执行逻辑
+
+~~~
+在app主程序入口处通过form = RegisterForm(request.form)来获取前端传送至后台的表单数据。
+
+form.validate()实际上通过for循环验证数据是否符合验证器的要求。
+
+而验证器的要求则直接保存在validators中。
+
+当validators判断失败，不符合规则，则会抛出异常被validate()捕获，返回form.errors
+~~~
+
+
 
 
 
@@ -4978,21 +4945,19 @@ form = RegisterForm(data=json_data)
 
 
 
-#### 7、CSRF跨站请求伪造
-
-
+### 七、CSRF跨站请求伪造
 
 ![image-20211125152612868](Python测试开发.assets/image-20211125152612868.png)
 
-八、Secert Key
+
+
+### 八、Secert Key
 
 对于每个要求修改服务器内容的要求，应该使用一次性token，并存储在cookie里，并且在发送表单数据的同时附上它。在服务器再次接收数据之后，需要比较两个token，并确保它们相等。
 
 随机生成Secret Key：os.urandom(24)
 
-
-
-模板渲染表单
+### 九、模板渲染表单
 
 通过wtform表单验证器渲染前端表单
 
