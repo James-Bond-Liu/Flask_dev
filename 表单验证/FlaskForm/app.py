@@ -26,7 +26,7 @@ def register():
         # 校验
         # form = RegisterForm(request.form)  # RegisterForm根本上继承自Form类，在初始化参数formdata
 
-        a=form.validate()
+        # if form.validate() and form.validate_phone():  调用自定义的validate函数进行表单验证
         if form.validate():  # 对表单中的数据按照RegisterForm中定义的规则进行验证
             print(form.data)
             return 'successful'

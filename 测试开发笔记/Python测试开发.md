@@ -4849,11 +4849,11 @@ class RegisterForm(Form):
 
 #### 5、自定义Validators验证器
 
-项目名在数据库中已存在
+场景：项目名在数据库中已存在；手机号码在数据库中已经被注册了
 
 第一种方法
 
-~~~
+~~~python
 class ProjectInForm(FlaskForm):
 	# TODO: project_name唯一性
 	project_name = StringField(label='项目名称', validators=[DataReqired(), Length(max=66,min=1)])
@@ -4873,9 +4873,9 @@ class ProjectInForm(FlaskForm):
 
 
 
-第二中方法，模仿其他的validator:
+第二种方法，模仿其他的validator:
 
-~~~
+~~~python
 class Unique:
 	"""验证数据库中是否唯一"""
 	def __init__(self, db_class, db_column, msg=None):
@@ -4891,31 +4891,36 @@ class Unique:
 			raise ValidationError(self.msg)
 		return filed.data
 
-# form 里面
+# forms 验证器里面调用
 project_name = StringField(label='项目名称', validators = [DataRequired(), Length(max=66, min=1), Unique(form_model, form_model.project_name)])
 		
 ~~~
 
 
 
-自定义电话号码：
+##### 实例
 
-~~~
+1、自定义手机号码格式验证器
+
+* 主要通过模仿其他validators实现
+
+~~~python
 class Mobile(object):
-	user_regex = re.compile('^1[3|4|5|7|8]\d{9}$']')
+	regex = re.compile('^1[3|4|5|7|8]\d{9}$]')
 	
 	def __init__(self, message=None):
+        if message is None:
+            self.message = '不是手机号码'
 		self.message = message
 	
 	def __call__(self, form, field):
-		value = field.data
-		message = self.message
-		if message is None:
-			message = field.gettext('Invalid mobile address')
-		match = self.user_regex.match(value or '')
+		match = self.regex.match(field.data)
 		if not match:
-			raise ValueError(message)
+			raise ValidationError(message)
 		return match
+    
+# 在验证form表单时调用
+phone = StringField(label='手机号码', validators = [DataRequired(), Mobile('手机号码格式不正确')])
 ~~~
 
 
@@ -4962,6 +4967,8 @@ form.validate()实际上通过for循环验证数据是否符合验证器的要�
 对于每个要求修改服务器内容的要求，应该使用一次性token，并存储在cookie里，并且在发送表单数据的同时附上它。在服务器再次接收数据之后，需要比较两个token，并确保它们相等。
 
 随机生成Secret Key：os.urandom(24)
+
+
 
 ### 九、模板渲染表单
 
@@ -5017,6 +5024,7 @@ scrf = SCRFProtect(app)
 
 # 配置可以公用
 SECRET_KEY = 'ghfdghoh23rtyergdhfgklerh6856798fgsdfgjhgm'
+
 # 或者独立的
 WTF_CSRF_SECRET_KEY = 'this is a csrf'
 
