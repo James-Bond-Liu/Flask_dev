@@ -5036,3 +5036,218 @@ var csrf_token = "{{ csrf_token() }}"
 
 注意：最好在渲染的模板里写对应的ajax代码，提取出来获取不到对应的csrf_token
 
+
+
+
+
+## 八、全局变量
+
+### 一、request
+
+当 Fask 应用处理请求时，它会根据从 WSGI 服务器收到的环境创建一个Request对象。因为 工作者（取決于服务器的线程，进程或协程）一次只能处理一个请求，所以在该请求期间请求数据可被认为是该工作者的全局数据。Flask对此使用术语“本地情境”
+
+
+
+### 二、请求钩子
+
+* 又叫做“中间件”
+
+在客户端和服务器交互的过程中，有些准备工作或扫尾工作需要处理，比如：
+
+- 在请求开始时，建立数据库连接；
+- 在请求开始时，根据需求进行权限校验；
+- 在请求结束时，指定数据的交互格式；
+
+为了让每个视图函数避免编写重复功能的代码，Flask提供了通用设施的功能，即请求钩子。请求钩子是通过装饰器的形式实现，Flask支持如下四种请求钩子：
+
+- before_first_request:在处理第一个请求前执行
+- before_request:在每次请求前执行,在该装饰函数中,一旦return,视图函数不再执行
+- after_request:如果没有抛出错误，在每次请求后执行
+  - 接受一个参数：视图函数作出的响应
+  - 在此函数中可以对响应值,在返回之前做最后一步处理,再返回
+  - 如果视图函数报错后，此函数将不再执行
+- teardown_request：在每次请求后执行
+  - 接受一个参数:用来接收错误信息
+
+
+
+```python
+from flask import Flask
+from flask import abort
+
+app = Flask(__name__)
+
+# 在第一次请求之前调用，可以在此方法内部做一些初始化操作
+@app.before_first_request
+def before_first_request():
+    print("before_first_request")
+
+
+# 在每次请求之前调用，这时候已经有请求了，可能在这个方法里面做请求的校验
+# 如果请求的校验不成功，可以直接在此方法中进行响应，直接return之后那么就不会执行后面的视图函数
+@app.before_request
+def before_request():
+    print("before_request")
+    # if 请求不符合条件:
+    #     return "laowang"
+
+# 在执行完视图函数之后会调用，并且会把视图函数所生成的响应传入,可以在此方法中对响应做最后一步统一的处理
+@app.after_request
+def after_request(response):
+    print("after_request")
+    response.headers["Content-Type"] = "application/json"
+    return response
+
+# 请每一次请求之后都会调用，会接受一个参数，参数是服务器出现的错误信息
+@app.teardown_request
+def teardown_request(e):
+    print("teardown_request")
+
+@app.route('/')
+def index():
+    return 'index'
+
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+- 在第1次请求时的打印：
+
+```python
+before_first_request
+before_request
+after_request
+teardown_request
+```
+
+- 在第2,3,..n次请求时的打印：
+
+```
+before_request
+after_request
+teardown_request
+```
+
+
+
+#### before_request
+
+情节1、运行需要某段时间的统计数据，不好去改视图函数：
+
+~~~python
+@app.before_request
+	def get_url():
+		print(“统计访问该网址的用户“)
+~~~
+
+
+
+情节2、验证用户
+
+~~~python
+@app.berfore_request
+def get_url():
+	user = request.args.get('sign')
+	if user is None:
+		abort(401)
+	g.user = user
+~~~
+
+
+
+情节3、请求时间验证
+
+~~~python
+@app.berfore_request
+def get_url():
+	ts = request.args.get('ts')
+	if int(time-time)-ts>5:
+		abort(412)
+~~~
+
+
+
+集中注册
+
+
+
+#### after_request
+
+场景：封装响应信息
+
+~~~
+@app.after_request
+# 组装响应对象
+# 当前面出错了这里不会执行
+def after(response):
+	print('after', request.url)
+	response.headers['you'] = 'love'
+	return response
+~~~
+
+* response 参数必须有
+* return的必须是一个Response对象
+* 通常用来修改响应
+* 如果视图函数出现报错，after_requst则不会发生调用
+
+
+
+#### teardown_request
+
+~~~
+@app.teardown_request
+def teardown_request(exception):
+	print('teart')
+	request.url
+~~~
+
+* 通常用来释放资源，比如数据库链接
+* 不管视图函数有没有发生错误，teardown_request函数都会发生调用
+
+
+
+
+
+g
+
+g实际上一个对象，可以在同一个请求中共享数据
+
+
+
+1、验证用户信息
+
+连接数据库的例子
+
+~~~
+def connect_to_database():
+	conn = pymysql.connect(host='localhost', user='root', password='',db='hess', charset='utf8mb4')
+	return conn.cursor()
+	
+@app.before_request
+def get_db():
+	if 'db' not in g:
+		g.db = connect_to_database()
+
+@app.teardown_request
+def teardown_db(exception):
+	db = g.pop('db', None)
+	if db is not None:
+		db.close()
+~~~
+
+
+
+在视图函数中使用
+
+~~~
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+	g.db.execute('SELECT * FROM user_info;')
+	a = g.db.fetchall()
+	print(a)
+~~~
+
+注意：before_request如果返回了值，对应的视图函数就不会再执行了，直接返回对应的值。teardown_request在每次请求中总是会执行。
+
+
+

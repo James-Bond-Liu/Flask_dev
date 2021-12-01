@@ -8,7 +8,7 @@
 <body>
 
 {% for project in p %}
-<div> 项目名称：{{ project.name }}, 接口数量：{{ project['interface_num'] }}, 创建时间：{{ demo(project.create_time) }}</div>   {# 调用环境管理器中的函数，将时间戳转化为便于阅读形式 #}
+<div> 项目名称：{{ project.name }}, 接口数量：{{ project['interface_num'] }}, 创建时间：{{ add_stime(project.create_time) }}</div>   {# 调用环境管理器中的函数，将时间戳转化为便于阅读形式 #}
 {% endfor %}
 <hr>
 <hr>
