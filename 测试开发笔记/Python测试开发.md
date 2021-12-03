@@ -5062,12 +5062,15 @@ var csrf_token = "{{ csrf_token() }}"
 
 - before_first_request:在处理第一个请求前执行
 - before_request:在每次请求前执行,在该装饰函数中,一旦return,视图函数不再执行
+  - 注意：before_request如果返回了值，对应的视图函数就不会再执行了，直接返回对应的值。
+  - 一个视图函数可以定义多个before_request，并且根据before_request函数的上下位置来决定先后执行顺序。
 - after_request:如果没有抛出错误，在每次请求后执行
   - 接受一个参数：视图函数作出的响应
   - 在此函数中可以对响应值,在返回之前做最后一步处理,再返回
   - 如果视图函数报错后，此函数将不再执行
 - teardown_request：在每次请求后执行
   - 接受一个参数:用来接收错误信息
+  - teardown_request在每次请求中总是会执行，而且无论视图函数是否执行成功
 
 
 
@@ -5132,6 +5135,8 @@ teardown_request
 
 #### before_request
 
+* 每次访问前接口，此before_request函数都需要执行
+
 情节1、运行需要某段时间的统计数据，不好去改视图函数：
 
 ~~~python
@@ -5173,7 +5178,9 @@ def get_url():
 
 #### after_request
 
-场景：封装响应信息
+* 场景：封装响应信息
+* 常用来接收视图函数返回的**响应体response**
+* 当视图函数执行失败，此after_request函数就不会再执行
 
 ~~~
 @app.after_request
@@ -5194,6 +5201,9 @@ def after(response):
 
 #### teardown_request
 
+* 常用来接收视图函数返回的**错误信息error**
+* 无论视图函数是否执行成功，teardown_request函数都会执行
+
 ~~~
 @app.teardown_request
 def teardown_request(exception):
@@ -5208,17 +5218,40 @@ def teardown_request(exception):
 
 
 
-g
+### g变量
 
-g实际上一个对象，可以在同一个请求中共享数据
-
-
+* 主要用在同一个请求中共享数据。g变量可以在同一个请求，不同的组件（视图函数）中传递使用。
+* g对象是专门用来保存用户数据的
+* g对象在一次请求中的所有的代码的地方，都是可以使用的
+* g对象发送第二次请求时，便会失效
 
 1、验证用户信息
 
-连接数据库的例子
+~~~python
+@app.before_request
+def get_user():
+    sign = request.args.get('user')
+    if sign != 'liufei':
+        abort(401)
+    else:
+        a = sign+'md5'  # 相当于用户的token
+        g.user = a  # 存储一个key='user',value='a'到全局变量g中
 
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    print(g.user)  # 调用g全局变量中的值
+    return 'Hello world'
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
 ~~~
+
+
+
+2、连接数据库的例子
+
+~~~python
 def connect_to_database():
 	conn = pymysql.connect(host='localhost', user='root', password='',db='hess', charset='utf8mb4')
 	return conn.cursor()
@@ -5233,13 +5266,7 @@ def teardown_db(exception):
 	db = g.pop('db', None)
 	if db is not None:
 		db.close()
-~~~
-
-
-
-在视图函数中使用
-
-~~~
+        
 @app.route('/register', methods=['GET', 'POST'])
 def register():
 	g.db.execute('SELECT * FROM user_info;')
@@ -5247,7 +5274,153 @@ def register():
 	print(a)
 ~~~
 
-注意：before_request如果返回了值，对应的视图函数就不会再执行了，直接返回对应的值。teardown_request在每次请求中总是会执行。
+
+
+### session
+
+#### 概念解释
+
+ session 是基于cookie实现， 保存在服务端的键值对（形式为 {随机字符串：‘xxxxxx’}）, 同时在浏览器中的cookie中也对应一相同的随机字符串，用来再次请求的 时候验证；
+
+#### 设置session
+
+* 配置SECRET_KEY
+  * 因为flask的session是通过加密之后放到了cookie中。所以有加密就有密钥用于解密，所以，只要用到了flask的session模块就一定要配置“SECRET_KEY”这个全局宏。一般设置为24位的字符。
+
+* 操作session
+  * 设置session：`session['key'] = value`
+  * 获取session：result =  `session.get('key')`，如果内容不存在，将返回None（推荐用法）
+
+
+
+~~~python
+from flask import Flask, request, session
+
+app = Flask(__name__)
+# 必须要设置secret_key
+app.config['SECERT_KEY']=os.urandom(24)
+
+@app.route('/')
+def home():
+    if not session.get('user'):
+        return '你没有登录'
+    return '这是首页'
+
+@app.route('/login')
+def login():
+    username=request.args.get("username")
+    pwd = request.args.get('pwd')
+    if username and pwd:
+        session['user'] = username
+        return '登录成功'
+    return '没有登录'
+
+@app.route('/logout')
+def logout():
+    session.pop('user', None)  # 或者session['user']=False
+    return '退出'
+~~~
+
+
+
+#### 设置session相关的配置项
+
+##### 1、有效时间
+
+使用场景：登录网页界面，下面有一个“记住我”选项，如果点击了则设置session的有效期长一点。就是设置这个
+
+* 如果没有指定session的过期时间，**那么默认是浏览器关闭后就自动结束**
+* 如果设置了session的permanent属性为True，那么过期时间默认是31天。
+
+
+
+**先进的配置有效期的方法**：（比如配置7天有效）
+
+- 1.引入包：`from datetime import timedelta`
+- 2.配置有效期限：`app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7) # 配置7天有效`
+- 3.设置：`session.permanent = True`
+
+
+
+##### 2、session名称
+
+* ![image-20211203152237064](Python测试开发.assets/image-20211203152237064.png)
+
+```
+"PERMANENT_SESSION_LIFETIME": timedelta(days=31),
+"SESSION_COOKIE_NAME": "session",
+```
+
+
+
+#### session工作流程
+
+![image-20211203150459263](Python测试开发.assets/image-20211203150459263.png)
+
+* 浏览器访问服务器，服务端设置session，并且返回一个sessionID给浏览器，浏览器保存sessionID，再次访问服务器时携带此sessionID， 服务器拿到sessionID与数据库中的session进行比对，通过鉴权。
+
+* session保存在服务器中，浏览器中存储的仅为sessionID。
+
+
+
+
+
+
+
+随机生成secret_key
+
+
+
+
+
+
+
+cookie
+
+~~~
+response = make_response('登录成功')
+response.set_cookie('current_time', time.stftime('%Y-%M-%D-%H'))
+~~~
+
+
+
+~~~
+request.cookies.get('current_time')
+~~~
+
+
+
+SecureCookieSessionInterface 和 SecureCookieSession
+
+flask默认提供的session功能很简单，满足了基本的功能。但是我们看到session的数据都保存在客户端的cookie中，这里这有用户名还好，如果有一些私密的数据（比如密码、账户），就会造成严重的安全问题。可以考虑使用flask-session这个第三方的库，它把数据保存在服务端（本地文件、redis、memcached），客户端只拿到一个sessionid.
+
+session主要是用来在不同的请求之间保存信息，最常见的应用就是登录功能。虽然直接通过session自己也可以写出来不错的登录功能，但是在实际的项目中可以考虑flask-login第三方的插件，方便我们的开发。
+
+
+
+
+
+curren_app
+
+Flask应用对象app具有诸如config之类的属性，这些属性对于在视图或者再命令行调试中访问很有用。但是，在项目中的模块内导入app实例容易导致循环导入问题。
+
+Flask通过应用情景解决了这个问题，不是直接引用一个app，而是使用current_app代理，该代理执行处理当前活动的应用。
+
+
+
+应用情景是什么？上下文，在上下文中访问某些变量才有意义，在上下文外面是没有意义的。
+
+~~~
+from flask import Flask
+
+app = Flask(__name__)
+
+import d3_current_app_view
+~~~
+
+
+
+
 
 
 
