@@ -1,4 +1,3 @@
-import pymysql
 from flask import Flask, g, request, abort
 
 app = Flask(__name__)

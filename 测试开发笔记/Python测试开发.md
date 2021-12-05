@@ -5218,7 +5218,7 @@ def teardown_request(exception):
 
 
 
-### g变量
+###  三、g变量
 
 * 主要用在同一个请求中共享数据。g变量可以在同一个请求，不同的组件（视图函数）中传递使用。
 * g对象是专门用来保存用户数据的
@@ -5276,11 +5276,13 @@ def register():
 
 
 
-### session
+### 四、session
 
 #### 概念解释
 
  session 是基于cookie实现， 保存在服务端的键值对（形式为 {随机字符串：‘xxxxxx’}）, 同时在浏览器中的cookie中也对应一相同的随机字符串，用来再次请求的 时候验证；
+
+flask中的session是基于cookie的。
 
 #### 设置session
 
@@ -5363,18 +5365,6 @@ def logout():
 
 
 
-
-
-
-
-随机生成secret_key
-
-
-
-
-
-
-
 cookie
 
 ~~~
@@ -5392,7 +5382,7 @@ request.cookies.get('current_time')
 
 SecureCookieSessionInterface 和 SecureCookieSession
 
-flask默认提供的session功能很简单，满足了基本的功能。但是我们看到session的数据都保存在客户端的cookie中，这里这有用户名还好，如果有一些私密的数据（比如密码、账户），就会造成严重的安全问题。可以考虑使用flask-session这个第三方的库，它把数据保存在服务端（本地文件、redis、memcached），客户端只拿到一个sessionid.
+flask默认提供的session功能很简单，满足了基本的功能。但是我们看到session的数据都保存在客户端的cookie中，这里这有用户名还好，如果有一些私密的数据（比如密码、账户），就会造成严重的安全问题。可以考虑使用flask-session这个第三方的库，它把数据保存在服务端（本地文件、redis、memcached），客户端只拿到一个sessionid。
 
 session主要是用来在不同的请求之间保存信息，最常见的应用就是登录功能。虽然直接通过session自己也可以写出来不错的登录功能，但是在实际的项目中可以考虑flask-login第三方的插件，方便我们的开发。
 
@@ -5400,11 +5390,11 @@ session主要是用来在不同的请求之间保存信息，最常见的应用�
 
 
 
-curren_app
+### 五、current_app
 
-Flask应用对象app具有诸如config之类的属性，这些属性对于在视图或者再命令行调试中访问很有用。但是，在项目中的模块内导入app实例容易导致循环导入问题。
+Flask应用对象app具有诸如config之类的属性，这些属性对于在视图或者在命令行调试中访问很有用。但是，在项目中的模块内导入app实例容易导致循环导入问题。
 
-Flask通过应用情景解决了这个问题，不是直接引用一个app，而是使用current_app代理，该代理执行处理当前活动的应用。
+Flask通过应用情景解决了这个问题，不是直接引用一个app，而是使用current_app代理，该代理执行处理当前活动的应用，在其他文件内直接导入from flask import current_app，然后通过current_app.config就可以直接访问app本身的资源属性。 
 
 
 
@@ -5416,7 +5406,235 @@ from flask import Flask
 app = Flask(__name__)
 
 import d3_current_app_view
+
 ~~~
+
+
+
+
+
+
+
+## 九、数据库和模型
+
+### 一、sqlite的使用
+
+#### 一、sqlite介绍
+
+SQLite是一种嵌入式数据库，它的数据库就是一个文件。
+
+~~~
+'''SQLite数据库是一款非常小巧的嵌入式开源数据库软件，也就是说
+没有独立的维护进程，所有的维护都来自于程序本身。
+在python中，使用sqlite3创建数据库的连接，当我们指定的数据库文件不存在的时候
+连接对象会自动创建数据库文件；如果数据库文件已经存在，则连接对象不会再创建
+数据库文件，而是直接打开该数据库文件。
+    连接对象可以是硬盘上面的数据库文件，也可以是建立在内存中的，在内存中的数据库
+    执行完任何操作后，都不需要提交事务的(commit)
+
+    创建在硬盘上面： conn = sqlite3.connect('c:\\test\\test.db')
+    创建在内存上面： conn = sqlite3.connect('"memory:')
+
+    下面我们一硬盘上面创建数据库文件为例来具体说明：
+    conn = sqlite3.connect('c:\\test\\hongten.db')
+    其中conn对象是数据库链接对象，而对于数据库链接对象来说，具有以下操作：
+
+        commit()            --事务提交
+        rollback()          --事务回滚
+        close()             --关闭一个数据库链接
+        cursor()            --创建一个游标
+
+    cu = conn.cursor()
+    这样我们就创建了一个游标对象：cu
+    在sqlite3中，所有sql语句的执行都要在游标对象的参与下完成
+    对于游标对象cu，具有以下具体操作：
+
+        execute()           --执行一条sql语句
+        executemany()       --执行多条sql语句
+        close()             --游标关闭
+        fetchone()          --从结果中取出一条记录
+        fetchmany()         --从结果中取出多条记录
+        fetchall()          --从结果中取出所有记录
+        scroll()            --游标滚动
+
+'''
+~~~
+
+
+
+#### 二、 sqlite操作
+
+##### 1、链接
+
+~~~python
+@app.before_request
+def db():
+    c = sqlite3.connect(r'd:\test.db')
+    g.db = c
+    g.c = c.cursor()
+
+@app.teardown_request
+def teardown_request(exception):
+    db = getattr(g, 'db', None)
+    if db is not None:
+        db.close()
+~~~
+
+
+
+##### 2、初始化数据库
+
+~~~python
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    q = """CREAT TABLE project (ID INT PRIMARY   NOT NULL
+                                NAME    CHAR(50)    NOT NULL
+                                DESC    CHAR(500);"""
+    g.c.execute(q)
+    g.db.commit()
+    q = f'insert into project (ID,NAME) values (123, "yu");'
+    g.c.execute(q)
+    g.db.commit()
+    return 'hello'
+~~~
+
+
+
+##### 3、查询数据库
+
+~~~python
+@app.route('/s', methods=['GET', 'POST'])
+def s():
+    g.c.execute('select * from project;')
+    print(g.c.fetchall())
+    return 's'
+~~~
+
+
+
+#### 三、sqlite的优势
+
+* 进程访问，不需要通过端口网络
+* 支持主流功能
+* python自带
+* 就是一个文件，备份和迁移很方便
+
+
+
+### 二、原生sql
+
+
+
+#### 1、数据库引擎
+
+~~~python
+def connect_to_database():
+    conn = pymysql.connect(host='localhost',
+                           user='root',
+                           password='123456',
+                           db='lemon_tester',
+                           charset='utf8mb4')
+    return conn.cursor()
+
+@app.route('/')
+def index():
+    db = connect_to_database()
+    db.execute('SELECT * FROM project_info;')
+    res = db.fetchall()
+    print(res)
+    return 'hello'
+~~~
+
+
+
+#### 2、封装sql语句
+
+~~~python
+def connect_to_database():
+    pass
+
+class DB():
+    def __init__(self):
+        self.conn = connect_to_database()
+
+    def query(self, sql):
+        self.conn.execute(sql)
+
+    def close(self):
+        self.close()
+
+class Project(DB):
+    table = 'project_info'
+
+    def list_all(self):
+        self.query(f'SELECT * FROM {self.table}')
+        res = self.conn.fetchall()
+        return res
+
+    def get_by_id(self, id):
+        self.query(f'SELECT * FROM {self.table} WHERE id={id}')
+        res = self.conn.fetone()
+        return res
+~~~
+
+* 将sql封装完成后，直接在视图函数中调用即可
+
+
+
+
+
+### 三、ORM
+
+
+
+#### 一、什么是ORM
+
+* 将pysql和sql语句封装成对象
+
+
+
+##### 1、原生sql和ORM 是两种不同的编程模式
+
+* 原生sql：谁都能看懂，维护成本低，开发效率低
+
+  * 先手工建表，然后根据表结构写代码
+
+  
+
+* ORM：sql直接封装好了，可读性高，开发效率高。
+
+  * 避免sql注入
+  * 使用原生sql，各个不同的数据需要写不同的查询语言。使用ORM模型不需要。
+  * 先写代码定义模型，通过代码生成表及表结构。
+
+
+
+#### 二、数据库创建步骤
+
+* 0、安装sqlalchemy或者**flask-sqlalchemy**
+* 1、配置数据库：mysql或者sqlite
+* 2、定义表结构，设计表
+* 3、创建表
+
+
+
+~~~python
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3306/demo'
+db = SQLALchemy(app)
+
+class User(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	username = db.Column(db.String(80), unique=True)
+	email = db.Column(db.String(120), unique=True)
+	
+def create_all():
+	return db.create_all()
+~~~
+
+
+
+
 
 
 
