@@ -5222,7 +5222,7 @@ def teardown_request(exception):
 
 * 主要用在同一个请求中共享数据。g变量可以在同一个请求，不同的组件（视图函数）中传递使用。
 * g对象是专门用来保存用户数据的
-* g对象在一次请求中的所有的代码的地方，都是可以使用的
+* g对象在一次请求中的所有的代码的地方，都是可以使用的（一次请求可以理解为刷新一次页面）
 * g对象发送第二次请求时，便会失效
 
 1、验证用户信息
@@ -5277,6 +5277,8 @@ def register():
 
 
 ### 四、session
+
+* session和g的最大对象区别是，session对象是可以跨request的，只要session还未失效，不同的request的请求会获取到同一个session，但是g对象不是，g对象不需要管过期时间，请求一次就g对象就改变了一次，或者重新赋值了一次
 
 #### 概念解释
 
@@ -5655,15 +5657,88 @@ class User(db.Model):
 	
 def create_all():
 	return db.create_all()
+
+create_all()
+~~~
+
+
+
+##### 1、初始化数据库的两种方式
+
+1、代码
+
+~~~
+app = Flask(__name__)
+db = SQLAlchemy(app)
+
+db = SQLAlchemy()
+
+def create_app():
+	app = Flask(__name__)
+	db.init_app(app)
+	return app
+	
+	# 推入上下文更好
+	with app.app_ocntext as ctx:
+		db.create_all()
 ~~~
 
 
 
 
 
+2、在command创建
+
+~~~
+set FLASK_APP = run.py
+
+flask shell 进入 python shell
+from run import db
+db.create_all()
+~~~
 
 
 
 
 
+3、通过migrate创建
+
+* 迁移的时候更方便
+* 动态修改数据库结构
+
+
+
+~~~
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3306/demo'
+db = SQLALchemy(app)
+migrate = Migrate(app, db)
+
+#生成
+set FLASK_APP = run.py
+flask db init
+flask db migrate  # 生成脚本
+flask db upgrade  # 更新到数据库
+flask db downgrade  # 退回
+
+
+~~~
+
+
+
+##### 2、配置参数
+
+
+
+
+
+| 参数名                    | 作用                                      |
+| ------------------------- | ----------------------------------------- |
+| SQLALCHEMY_DATABASE_URI   | 用于连接数据库                            |
+| SQLALCHEMY_BINDS          | 一个映射绑定（bind）键到SQLALCHEYMY数据库 |
+| SQLALCHEMY_ECHO           |                                           |
+| SQLALCHEMY_RECORD_QUERIES |                                           |
+| SQLALCHEMY_NATIVE_UNICODE |                                           |
+| SQLALCHEMY_POOL_SIZE      | 数据库连接池的大小                        |
+| SQLALCHEMY_POOL_TIMEOUT   | 指定数据库连接池的超时时间                |
 
