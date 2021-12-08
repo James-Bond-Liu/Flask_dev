@@ -5639,6 +5639,7 @@ ORM框架（全称:Object Relational Mapping,又称持久化框架）是模型�
 #### 二、数据库创建步骤
 
 * 0、安装sqlalchemy或者**flask-sqlalchemy**
+  * http://www.pythondoc.com/flask-sqlalchemy/quickstart.html
 * 1、配置数据库：mysql或者sqlite
 * 2、定义表结构，设计表
 * 3、创建表
@@ -5692,9 +5693,9 @@ def create_app():
 ~~~
 set FLASK_APP = run.py
 
-flask shell 进入 python shell
-from run import db
-db.create_all()
+cmd命令行下：flask shell (进入 python shell)
+>>>from run import db
+>>>db.create_all()
 ~~~
 
 
@@ -5732,13 +5733,65 @@ flask db downgrade  # 退回
 
 
 
-| 参数名                    | 作用                                      |
-| ------------------------- | ----------------------------------------- |
-| SQLALCHEMY_DATABASE_URI   | 用于连接数据库                            |
-| SQLALCHEMY_BINDS          | 一个映射绑定（bind）键到SQLALCHEYMY数据库 |
-| SQLALCHEMY_ECHO           |                                           |
-| SQLALCHEMY_RECORD_QUERIES |                                           |
-| SQLALCHEMY_NATIVE_UNICODE |                                           |
-| SQLALCHEMY_POOL_SIZE      | 数据库连接池的大小                        |
-| SQLALCHEMY_POOL_TIMEOUT   | 指定数据库连接池的超时时间                |
+| 参数名                      | 作用                                                         |
+| --------------------------- | ------------------------------------------------------------ |
+| `SQLALCHEMY_DATABASE_URI`   | 用于连接数据的数据库。例如：`sqlite:tmp/test.db``mysql://username:password@server/db` |
+| `SQLALCHEMY_BINDS`          | 一个映射绑定 (bind) 键到 SQLAlchemy 连接 URIs 的字典。 更多的信息请参阅 [*绑定多个数据库*](http://www.pythondoc.com/flask-sqlalchemy/binds.html#binds)。 |
+| `SQLALCHEMY_ECHO`           | 如果设置成 True，SQLAlchemy 将会记录所有 发到标准输出(stderr)的语句，这对调试很有帮助。 |
+| `SQLALCHEMY_RECORD_QUERIES` | 可以用于显式地禁用或者启用查询记录。查询记录 在调试或者测试模式下自动启用。更多信息请参阅 `get_debug_queries()`。 |
+| `SQLALCHEMY_NATIVE_UNICODE` | 可以用于显式地禁用支持原生的 unicode。这是 某些数据库适配器必须的（像在 Ubuntu 某些版本上的 PostgreSQL），当使用不合适的指定无编码的数据库 默认值时。 |
+| `SQLALCHEMY_POOL_SIZE`      | 数据库连接池的大小。默认是数据库引擎的默认值 （通常是 5）。  |
+| `SQLALCHEMY_POOL_TIMEOUT`   | 指定数据库连接池的超时时间。默认是 10。                      |
+
+
+
+
+
+## 连接 URI 格式
+
+完整连接 URI 格式列表请跳转到 SQLAlchemy 下面的文档([支持的数据库](http://www.sqlalchemy.org/docs/core/engines.html))。这里展示了一些常见的连接字符串。
+
+SQLAlchemy 把一个引擎的源表示为一个连同设定引擎选项的可选字符串参数的 URI。URI 的形式是:
+
+```
+dialect+driver://username:password@host:port/database
+```
+
+该字符串中的许多部分是可选的。如果没有指定驱动器，会选择默认的（确保在这种情况下 **不**包含 `+` ）。
+
+Postgres:
+
+```
+postgresql://scott:tiger@localhost/mydatabase
+```
+
+MySQL:
+
+```
+mysql://scott:tiger@localhost/mydatabase
+```
+
+Oracle:
+
+```
+oracle://scott:tiger@127.0.0.1:1521/sidname
+```
+
+SQLite (注意开头的四个斜线):
+
+```
+sqlite:absolute/path/to/foo.db
+```
+
+
+
+多个数据库绑定
+
+http://www.pythondoc.com/flask-sqlalchemy/binds.html
+
+1、配置
+
+~~~
+app.config['S']
+~~~
 
