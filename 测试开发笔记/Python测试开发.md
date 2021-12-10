@@ -5638,25 +5638,25 @@ ORM框架（全称:Object Relational Mapping,又称持久化框架）是模型�
 
 #### 二、数据库创建步骤
 
-* 0、安装sqlalchemy或者**flask-sqlalchemy**
+* 0、安装sqlalchemy或者**flask-sqlalchemy**,pip install flask-sqlalchemy
   * http://www.pythondoc.com/flask-sqlalchemy/quickstart.html
 * 1、配置数据库：mysql或者sqlite
 * 2、定义表结构，设计表
 * 3、创建表
 
-
+##### 1、样例
 
 ~~~python
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3306/demo'
 db = SQLALchemy(app)
 
-class User(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
+class User(db.Model):  # 创建一个表模型，数据模型继承的类时db.Model
+	id = db.Column(db.Integer, primary_key=True)  # 数据类型及列属性直接从db导入
 	username = db.Column(db.String(80), unique=True)
 	email = db.Column(db.String(120), unique=True)
 	
-def create_all():
+def create_all():  # 调用此方法初始化模型，将表创建到数据库中
 	return db.create_all()
 
 create_all()
@@ -5664,7 +5664,9 @@ create_all()
 
 
 
-##### 1、初始化数据库的两种方式
+##### 2、初始化数据库的三种方式
+
+* 即将代码中的表模型创建出来
 
 1、代码
 
@@ -5690,12 +5692,28 @@ def create_app():
 
 2、在command创建
 
-~~~
+~~~shell
 set FLASK_APP = run.py
 
-cmd命令行下：flask shell (进入 python shell)
+cmd命令行下：flask shell (进入 flask中自带的 shell)
 >>>from run import db
->>>db.create_all()
+>>>db.create_all()  # 此时数据库已经初始化完成
+
+# 数据库已经生成。现在来创建一些用户,目前还没有真正地写入到数据库中
+>>>from app import User
+>>>one=User('panda', 'panda@qq.com')
+>>>two=User('cat','cat@qq.com')
+
+# 将创建的用户写入数据库
+>>>db.session.add(one)
+>>>db.session.add(two)
+>>>db.session.commit()
+
+# 访问数据库中的数据也是十分简单的:
+>>> users = User.query.all()  # 获取数据库中表的所有数据
+[<User u'panda'>, <User u'cat'>]
+>>> admin = User.query.filter_by(username='panda').first()
+<User u'cat'>
 ~~~
 
 
@@ -5703,6 +5721,8 @@ cmd命令行下：flask shell (进入 python shell)
 
 
 3、通过migrate创建
+
+* pip install flask-migrate
 
 * 迁移的时候更方便
 * 动态修改数据库结构
@@ -5715,23 +5735,20 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3306/de
 db = SQLALchemy(app)
 migrate = Migrate(app, db)
 
-#生成
+# 全部在cmd命令行下执行
 set FLASK_APP = run.py
 flask db init
 flask db migrate  # 生成脚本
 flask db upgrade  # 更新到数据库
 flask db downgrade  # 退回
 
-
 ~~~
 
 
 
-##### 2、配置参数
+##### 3、配置参数
 
-
-
-
+**app.config['参数名称'] = 值**
 
 | 参数名                      | 作用                                                         |
 | --------------------------- | ------------------------------------------------------------ |
@@ -5747,7 +5764,7 @@ flask db downgrade  # 退回
 
 
 
-## 连接 URI 格式
+##### 4、连接 URI 格式
 
 完整连接 URI 格式列表请跳转到 SQLAlchemy 下面的文档([支持的数据库](http://www.sqlalchemy.org/docs/core/engines.html))。这里展示了一些常见的连接字符串。
 
@@ -5759,25 +5776,25 @@ dialect+driver://username:password@host:port/database
 
 该字符串中的许多部分是可选的。如果没有指定驱动器，会选择默认的（确保在这种情况下 **不**包含 `+` ）。
 
-Postgres:
+Postgres数据库:
 
 ```
 postgresql://scott:tiger@localhost/mydatabase
 ```
 
-MySQL:
+MySQL数据库:
 
 ```
 mysql://scott:tiger@localhost/mydatabase
 ```
 
-Oracle:
+Oracle数据库:
 
 ```
 oracle://scott:tiger@127.0.0.1:1521/sidname
 ```
 
-SQLite (注意开头的四个斜线):
+SQLite (注意开头的四个斜线)数据库:
 
 ```
 sqlite:absolute/path/to/foo.db
@@ -5785,13 +5802,84 @@ sqlite:absolute/path/to/foo.db
 
 
 
-多个数据库绑定
+##### 5、多个数据库绑定
 
 http://www.pythondoc.com/flask-sqlalchemy/binds.html
 
-1、配置
+1、配置声明
+
+下面的配置声明了三个数据库连接。特殊的默认值和另外两个分别名为 users`（用于用户）和 `appmeta 连接到一个提供只读访问应用内部数据的 sqlite 数据库）:
+
+~~~python
+app.config['SQLALCHEMY_DATABASE_URI'] ='sqlite:////d:/demo1.db'
+app.config['SQLALCHEMY_BINDS'] = {
+	'users':   'sqlite:////d:/demo1.db',
+	'main':    'mysql+pymysql://root:@localhost:3306/demo'
+}
 
 ~~~
-app.config['S']
+
+
+
+2、模型绑定
+
+在Models定义的时候不指定就使用默认的数据库引擎(`SQLALCHEMY_DATABASE_URI` 配置值)，指定的话就用指定的数据库引擎。
+
+* 数据库引擎简单来说就是一个"数据库发动机"。当你访问数据库时，不管是手工访问，还是程序访问，都不是直接读写数据库文件，而是 通过数据库引擎去访问数据库文件。以关系型数据库为例，你发SQL语句给数据库引擎， 数据库引擎解释SQL语句，提取出你需要的数据返回给你。因此，对访问者来说，数据库引擎就是SQL语句的解释器。
+  
+
+~~~python
+class User(db.Model):
+	__bind_key__ = 'users'
+~~~
+
+在数据模型类中指定这个绑定binds，当在初始化或者说创建这个数据库时则只能通过这个绑定binds来创建数据库。
+
+
+
+
+
+
+
+3、运行
+
+~~~python
+with app.app_context() as ctx:
+	ctx.push()
+	user = User(username='yuz', email = 'sofo')
+	db.session.add(user)
+	db.session.commit()
+~~~
+
+
+
+
+
+乱起八糟
+
+create_all()  和  drop_all()  方法默认作用于所有声明的绑定(bind)，包括默认的。
+
+也就是说，当我们直接调用这两个方法时可以创建所有的数据模型。但是当我们调用这两个方法并且传入参数binds=['**']，则会只创建和该binds一致的模型，其它的数据模型不会被创建。
+
+
+
+
+
+这个行为可以通过提供 bind 参数来定制。它可以是单个绑定(bind)名, `'__all__'` 指向所有绑定(binds)或一个绑定(bind)名的列表。默认的绑定(bind)(`SQLALCHEMY_DATABASE_URI`) 名为 None:
+
+
+
+
+
+
+
+~~~
+from flask_sqlalchemy import SQLAlchemy
+basedir = path.dirname(__file__)
+
+app.config.from_pyfile('config')
+app.config['SQLALCHEMY_DATABASE_URI'] = \
+    'sqlite:///' + path.join(base.dir, 'data.sqlite')
+app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 ~~~
 
