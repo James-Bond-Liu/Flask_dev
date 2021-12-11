@@ -5649,6 +5649,7 @@ ORM框架（全称:Object Relational Mapping,又称持久化框架）是模型�
 ~~~python
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3306/demo'
+app.config['SQLALCHEMKY_TRACK_MODIFICATIONS'] = False
 db = SQLALchemy(app)
 
 class User(db.Model):  # 创建一个表模型，数据模型继承的类时db.Model
@@ -5794,10 +5795,14 @@ Oracle数据库:
 oracle://scott:tiger@127.0.0.1:1521/sidname
 ```
 
-SQLite (注意开头的四个斜线)数据库:
+SQLite (注意开头的斜线)数据库:
+
+* 在Windows系统中，开头需要四个斜线
+* 在Linux系统中，开头需要三个斜线
 
 ```
-sqlite:absolute/path/to/foo.db
+sqlite:////absolute/path/to/foo.db
+sqlite:///absolute/path/to/foo.db
 ```
 
 
@@ -5821,6 +5826,10 @@ app.config['SQLALCHEMY_BINDS'] = {
 
 
 
+先在config配置项声明几个数据库的链接
+
+
+
 2、模型绑定
 
 在Models定义的时候不指定就使用默认的数据库引擎(`SQLALCHEMY_DATABASE_URI` 配置值)，指定的话就用指定的数据库引擎。
@@ -5832,6 +5841,8 @@ app.config['SQLALCHEMY_BINDS'] = {
 class User(db.Model):
 	__bind_key__ = 'users'
 ~~~
+
+然后再在数据模型中指定用哪个数据库（即进行绑定），然后我们在初始化数据库创建数据模型的时候就会自动去找到这个数据库进行创建。
 
 在数据模型类中指定这个绑定binds，当在初始化或者说创建这个数据库时则只能通过这个绑定binds来创建数据库。
 
@@ -5882,4 +5893,204 @@ app.config['SQLALCHEMY_DATABASE_URI'] = \
     'sqlite:///' + path.join(base.dir, 'data.sqlite')
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 ~~~
+
+
+
+
+
+#### 三、数据库模型定义的参数说明
+
+https://www.cnblogs.com/jinjidedale/p/6180262.html
+
+
+
+https://www.cnblogs.com/aibabel/p/11571196.html
+
+
+
+
+
+
+
+#### 四、数据库操作
+
+##### 1、创建表
+
+~~~
+db.create_all()
+~~~
+
+
+
+##### 2、插入行
+
+~~~
+from d3_flask_migrate import db
+from db_flask_migrate import User
+
+user = User(username='demo')
+db.session.add(user)  # 保存到会话
+# 添加多个
+db.session.add_all([user1, user2])
+db.session.commit()		
+
+~~~
+
+
+
+##### 3、查询过滤
+
+###### 1、所有的all()
+
+~~~
+users = User.query.all()
+~~~
+
+
+
+###### 2、第一行数据first()
+
+~~~
+users = User.query.get(1)
+
+~~~
+
+
+
+###### 3、get()通过主键去获取
+
+~~~
+# 如果有多个主键
+users = User.query.get((1,5))
+users = User.query.get({"id":1, "project_id":3})
+~~~
+
+
+
+###### 4、filter_by()
+
+~~~
+admin = User.query.filter_by(username='admin').first()
+~~~
+
+
+
+###### 5、filter()更加复杂的查询
+
+~~~
+User.query.filter(User.email.endswith('@example.com')).all()
+~~~
+
+
+
+###### 6、按某种规则对用户排序
+
+~~~
+>>> User.queryorder_by(User.username.desc()).all()
+[<User u'admin'>, <User u'guest'>, <User u'peter'>]
+~~~
+
+
+
+###### 7、限制返回用户的数量
+
+~~~
+>>> User.query.order_by(User.username.desc()).limit(1).all()
+[<User u'admin']
+~~~
+
+
+
+##### 4、删除
+
+~~~
+db.session.delete(me)
+>>> db.session.commit()
+~~~
+
+
+
+##### 5、first_or_404
+
+没找到就abort()和看异常处理机制配合起来使用
+
+
+
+##### 6、数据更新
+
+~~~
+user = User()
+db.session.add(user)
+
+# 添加多个
+db.session.add_all([user1, user2])
+
+db.session.commit()
+~~~
+
+
+
+#### 五、分页
+
+如何分页
+
+sql实现分页
+
+
+
+#### 六、数据库迁移
+
+~~~
+flask db init
+flask db migrate  # 生成脚本
+flask db upgrade  # 更新到数据库
+flask db downgrade  # 退回
+~~~
+
+
+
+七、原生的SQL语句
+
+db.session.execute()
+
+~~~
+def select():
+	with app.app_context() as ctx:
+		sql = 'select * from user;'
+		a = db.session.execute(sql)
+		# a是一个ResultProxy
+		# print(a.fetchall())
+		# print(a.fetchone())
+~~~
+
+
+
+用原生sqlalchemy执行sql语句
+
+~~~
+def init_sql():
+	import sqlalchemy
+	
+	db_engine = sqlalchemy.create_engine('mysql+pymysql://root:@localhost/weibo', echo=True)
+	db_conn = db_engine.connect()
+	a = db_conn.execute('select * from user;')
+	print(a.fetchall())
+~~~
+
+
+
+原生sql语句的参数化：
+
+~~~
+session = Session(bind=engine)
+sql = 'select * from user where name = :name;'
+a = session.execute(sql, params={'name':'panda'})
+print(a.fetchall())
+~~~
+
+
+
+
+
+
 
