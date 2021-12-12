@@ -5848,10 +5848,6 @@ class User(db.Model):
 
 
 
-
-
-
-
 3、运行
 
 ~~~python
@@ -5864,51 +5860,52 @@ with app.app_context() as ctx:
 
 
 
-
-
-乱起八糟
-
-create_all()  和  drop_all()  方法默认作用于所有声明的绑定(bind)，包括默认的。
-
-也就是说，当我们直接调用这两个方法时可以创建所有的数据模型。但是当我们调用这两个方法并且传入参数binds=['**']，则会只创建和该binds一致的模型，其它的数据模型不会被创建。
-
-
-
-
-
-这个行为可以通过提供 bind 参数来定制。它可以是单个绑定(bind)名, `'__all__'` 指向所有绑定(binds)或一个绑定(bind)名的列表。默认的绑定(bind)(`SQLALCHEMY_DATABASE_URI`) 名为 None:
-
-
-
-
-
-
-
-~~~
-from flask_sqlalchemy import SQLAlchemy
-basedir = path.dirname(__file__)
-
-app.config.from_pyfile('config')
-app.config['SQLALCHEMY_DATABASE_URI'] = \
-    'sqlite:///' + path.join(base.dir, 'data.sqlite')
-app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
-~~~
-
-
-
-
-
 #### 三、数据库模型定义的参数说明
+
+在 ORM 中, 模型一般是一个 Python 类, 类对应表，类中的属性对应数据库中的表的字段。Flaks-SQLAlchemy 创建的数据库实例为模型提供了一个基类以及一些列辅助类和辅助函数, 可用于定义模型的结构。
 
 https://www.cnblogs.com/jinjidedale/p/6180262.html
 
+* db.Model  # 模型类class继承db.Model，用来创建模型,
 
+* db.Column  # 创建模型属性.
 
-https://www.cnblogs.com/aibabel/p/11571196.html
+##### 模型属性的类型 :
 
+| 类型名       | Python类型         | 说明                                                  |
+| ------------ | ------------------ | ----------------------------------------------------- |
+| Integer      | int                | 普通整数，一般是 32 位                                |
+| SmallInteger | int                | 取值范围小的整数，一般是 16 位                        |
+| Big Integer  | int 或 long        | 不限制精度的整数                                      |
+| Float        | float              | 浮点数                                                |
+| Numeric      | decimal.Decimal    | 定点数                                                |
+| String(size) | str                | 变长字符串，有长度限制                                |
+| Text         | str                | 变长字符串，对较长或不限长度的字符串做了优化          |
+| Unicode      | unicode            | 变长 Unicode 字符串                                   |
+| Unicode Text | unicode            | 变长 Unicode 字符串，对较长或不限长度的字符串做了优化 |
+| Boolean      | bool               | 布尔值                                                |
+| Date         | datetime.date      | 日期                                                  |
+| Time         | datetime.time      | 时间                                                  |
+| DateTime     | datetime.datetime  | 日期和时间                                            |
+| Interval     | datetime.timedelta | 时间间隔                                              |
+| Enum         | str                | 一组字符串                                            |
+| PickleType   | 任何 Python 对象   | 自动使用 Pickle 序列化                                |
+| LargeBinary  | str                | 二进制文件                                            |
 
+##### 常用 SQLAlchemy 列（表中字段）选项
 
+| 选项名                      | 说明                                                         |
+| --------------------------- | ------------------------------------------------------------ |
+| primary_key                 | 如果设为 True，这列就是表的主键。自增长。                    |
+| autoincrement               | 如果设为 True，这列为自增长。主键列不需要设置自增长，默认是自增长的 |
+| unique                      | 如果设为 True，这列不允许出现重复的值                        |
+| index                       | 如果设为 True，为这列创建索引，提升查询效率。注意不要给多列同时设置索引消耗资源。 |
+| nullable                    | 如果设为 True，这列允许使用空值；如果设为 False，这列不允许使用空值 |
+| default                     | 为这列定义默认值                                             |
+| comment                     | 说明，注释                                                   |
+| db.ForeignKey('project.id') |                                                              |
 
+Flask-SQLAlchemy 要求每个模型都要定义主键, 这一列通常命名为 id .
 
 
 

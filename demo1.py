@@ -9,11 +9,11 @@ app = Flask(__name__)
 
 # 配置多个数据库连接
 SQLALCHEMY_BINDS = {
-    'users': 'sqlite:///users.db',
-    'appmeta': 'sqlite:///appmeta.db'
+    'users': 'mysql+pymysql://root:123456@localhost:3306/test2',
+    'appmeta': 'mysql+pymysql://root:123456@localhost:3306/test3'
 }
 
-app.config['SQLALCHEMY_DATABASE_URI'] =  'sqlite:///hhh/ddd/test.db' # 默认数据库引擎
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost:3306/test1' # 默认数据库引擎
 app.config['SQLALCHEMY_BINDS'] = SQLALCHEMY_BINDS
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -51,7 +51,7 @@ class User(db.Model):
 
 class Article(db.Model):
     __bind_key__ = 'appmeta'
-    __tablename__ = 'article'
+    # __tablename__ = 'article'
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(80), unique=True)
@@ -66,8 +66,8 @@ class Article(db.Model):
 
 
 # db.create_all() # 未指定bind,则使用默认的数据库引擎
-db.create_all(bind='users') # 指定bind,则使用指定的数据库引擎
-# db.create_all(bind='appmeta')
+# db.create_all(bind='users') # 指定bind,则使用指定的数据库引擎
+db.create_all(bind='appmeta')
 #
 # news = News('ha','hahahhahaha') # 自动关联到相对应的ORM模型,进而使用相关联的数据库引擎
 # db.session.add(news) # 插入一条数据
