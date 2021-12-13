@@ -888,7 +888,53 @@ get请求的请求参数存在于URL中，“？”后面为参数，&为参数�
 
         
 
-      
+
+
+
+#### 6.获取接口响应时间
+
+elapsed里面几个方法介绍
+
+- total_seconds 总时长，单位秒
+- days 以天为单位
+- microseconds (>= 0 and less than 1 second) 获取微秒部分，大于0小于1秒
+- seconds Number of seconds (>= 0 and less than 1 day) 秒，大于0小于1天
+- max = datetime.timedelta(999999999, 86399, 999999) 最大时间
+- min = datetime.timedelta(-999999999) 最小时间
+- resolution = datetime.timedelta(0, 0, 1) 最小时间单位
+
+
+
+~~~python
+import requests
+res = requests.get("http://www.baidu.com")
+print(res.elapsed)
+print(res.elapsed.total_seconds())  # 单位为s，最常用的记录返回时间
+print(res.elapsed.microseconds)  # 单位微秒ms，当响应时间大于1s时，只截取返回微秒部分
+print(res.elapsed.seconds)  # 单位s，响应时间小于1s时，为0
+print(res.elapsed.days)
+print(res.elapsed.max)
+print(res.elapsed.min)
+print(res.elapsed.resolution)
+
+# 响应时间输出结果
+0:00:00.055914
+0.055914
+55914
+0
+0
+999999999 days, 23:59:59.999999
+-999999999 days, 0:00:00
+0:00:00.000001
+~~~
+
+
+
+
+
+
+
+
 
 ## 三、单元测试
 
