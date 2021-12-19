@@ -5916,7 +5916,7 @@ Flask-SQLAlchemy 要求每个模型都要定义主键, 这一列通常命名为 
 
 ##### 1、创建表
 
-~~~
+~~~python
 db.create_all()
 ~~~
 
@@ -5924,7 +5924,7 @@ db.create_all()
 
 ##### 2、插入行
 
-~~~
+~~~python
 from d3_flask_migrate import db
 from db_flask_migrate import User
 
@@ -5940,18 +5940,29 @@ db.session.commit()
 
 ##### 3、查询过滤
 
+* ORM 模型中关于查询的相关操作全部封装在Query对象中。
+
+  ```
+  from sqlalchemy.orm import Query
+  ```
+
+
+
 ###### 1、所有的all()
 
-~~~
+~~~python
 users = User.query.all()
+
+# 链式调用, 所有的方法返回的都是同一个对象，直到返回的对象不是同一个时停止调用
+users = User.query.where().group_by().offset().all()
 ~~~
 
 
 
 ###### 2、第一行数据first()
 
-~~~
-users = User.query.get(1)
+~~~python
+users = User.query.first()
 
 ~~~
 
@@ -5959,27 +5970,40 @@ users = User.query.get(1)
 
 ###### 3、get()通过主键去获取
 
-~~~
+~~~python
+# 表中只有一个主键
+user = User.query.get(4)  # 表中只有一个主键时，get方法会自动去寻找该主键并匹配
+
 # 如果有多个主键
 users = User.query.get((1,5))
-users = User.query.get({"id":1, "project_id":3})
+users = User.query.get({"id":1, "project_id":3})  # 有多个主键时需要提供字段名
 ~~~
 
 
 
 ###### 4、filter_by()
 
-~~~
-admin = User.query.filter_by(username='admin').first()
+* 用于查询简单的列名，不支持比较运算符。
+
+~~~python
+admin = User.query.filter_by(username = 'admin').first()
 ~~~
 
 
 
 ###### 5、filter()更加复杂的查询
 
-~~~
+* 比filter_by的功能更强大，支持比较运算符，支持or_、in_等语法。
+
+~~~python
 User.query.filter(User.email.endswith('@example.com')).all()
 ~~~
+
+* filter支持的具体表达式，可以在ColumnOperators源码中查看。
+
+  ~~~
+  from sqlalchemy.sql.operators import ColumnOperators
+  ~~~
 
 
 

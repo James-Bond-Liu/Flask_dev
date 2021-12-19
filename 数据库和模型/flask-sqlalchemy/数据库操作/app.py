@@ -29,8 +29,8 @@ def index1():
 
 @app.route('/insert2')
 def index2():
-    new_user1 = User(username='刘菲', email='779542742@qq.com')
-    new_user2 = User(username='小姨')
+    new_user1 = User(username='panda', email='77954@qq.com')
+    new_user2 = User(username='tiger')
     db.session.add_all([new_user1, new_user2])  # 添加多条数据
     db.session.commit()
     return 'hello, insert2'
