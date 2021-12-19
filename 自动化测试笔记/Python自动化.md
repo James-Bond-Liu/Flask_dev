@@ -886,7 +886,18 @@ get请求的请求参数存在于URL中，“？”后面为参数，&为参数�
         print(pro_res.json())
         ~~~
 
-        
+   3. 通过前端返回的html页面获取token
+
+      ~~~python
+      import requests
+      from lxml import etree
+      res = requests.get('http://www.baidu.com/')
+      html = etree.HTML(res.text)
+      token = html.xpath('//input[@name="crsf_token"]')[0].get('value')
+      print(token)
+      ~~~
+
+      
 
 
 
