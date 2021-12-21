@@ -1,11 +1,15 @@
 from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql.operators import ColumnOperators
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost:3306/test1'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+
+ColumnOperators
 
 
 class User(db.Model):  # 创建一个表模型，数据模型继承的类时db.Model
@@ -29,8 +33,8 @@ def index1():
 
 @app.route('/insert2')
 def index2():
-    new_user1 = User(username='panda', email='77954@qq.com')
-    new_user2 = User(username='tiger')
+    new_user1 = User(username='panda', email='panda@qq.com')
+    new_user2 = User(username='tiger', email='cat@qq.com')
     db.session.add_all([new_user1, new_user2])  # 添加多条数据
     db.session.commit()
     return 'hello, insert2'

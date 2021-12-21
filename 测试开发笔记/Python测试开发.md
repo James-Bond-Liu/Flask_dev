@@ -5983,7 +5983,8 @@ users = User.query.get({"id":1, "project_id":3})  # 有多个主键时需要提�
 
 ###### 4、filter_by()
 
-* 用于查询简单的列名，不支持比较运算符。
+* 用于简单的等值查询，不支持比较运算符。
+* 直接使用**属性名=值**
 
 ~~~python
 admin = User.query.filter_by(username = 'admin').first()
@@ -5993,7 +5994,8 @@ admin = User.query.filter_by(username = 'admin').first()
 
 ###### 5、filter()更加复杂的查询
 
-* 比filter_by的功能更强大，支持比较运算符，支持or_、in_等语法。
+* 支持比较运算符，支持or_、in_等语法。
+* 需要通过**类名.属性名**的方式，**类名.属性名==值**。
 
 ~~~python
 User.query.filter(User.email.endswith('@example.com')).all()
@@ -6005,18 +6007,39 @@ User.query.filter(User.email.endswith('@example.com')).all()
   from sqlalchemy.sql.operators import ColumnOperators
   ~~~
 
+* filter()进行多条件查询
+  * 查询用户姓名是阎秀英，并且用户的role_id=3的数据
+
+    ~~~
+    u = User.query.filter(User.name=='阎秀英').filter(User.role_id==3).first() 这里用多个filter作为多个条件的选择
+    或者
+    u = User.query.filter(User.name=='阎秀英', User.role_id==3).first() 用1个filter，多个条件中间用逗号分开，他的效果和使用and_()一样
+    或者
+    u = User.query.filter(and_(User.name=='阎秀英', User.role_id==3)).first()
+    ~~~
+
+    
+
+  * 查询role_id不等于3，并且id大于10的数据
+
+    ~~~
+    u = User.query.filter(User.role_id != 3, User.id > 10).all()
+    ~~~
+
+    
+
 
 
 ###### 6、按某种规则对用户排序
 
 ~~~
->>> User.queryorder_by(User.username.desc()).all()
+>>> User.query.order_by(User.username.desc()).all()  # 降序排列， 默认order_by()方法升序
 [<User u'admin'>, <User u'guest'>, <User u'peter'>]
 ~~~
 
 
 
-###### 7、限制返回用户的数量
+###### 7、限制返回的数量
 
 ~~~
 >>> User.query.order_by(User.username.desc()).limit(1).all()
@@ -6073,11 +6096,13 @@ flask db downgrade  # 退回
 
 
 
-七、原生的SQL语句
+#### 七、执行原生SQL语句
 
-db.session.execute()
+* 一般直接执行原生sql语句，常用于比较复杂的sql。
 
-~~~
+##### 1、db.session.execute()
+
+~~~python
 def select():
 	with app.app_context() as ctx:
 		sql = 'select * from user;'
@@ -6103,13 +6128,14 @@ def init_sql():
 
 
 
-原生sql语句的参数化：
+##### 2、原生sql语句的参数化：
 
-~~~
+~~~python
 session = Session(bind=engine)
 sql = 'select * from user where name = :name;'
 a = session.execute(sql, params={'name':'panda'})
 print(a.fetchall())
+print(a.fetchone())
 ~~~
 
 
