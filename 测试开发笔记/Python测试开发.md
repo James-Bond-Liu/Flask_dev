@@ -425,7 +425,91 @@ python的数据类型分为可变类型（不可hash操作）和不可变类型�
 
 
 
-#### 4. 生成器（generator）
+#### 4. yield，send的用法
+
+* return和yield的区别
+  * **return：**在程序函数中返回某个值，返回之后函数不在继续执行，彻底结束。
+  * **yield:** 带有yield的函数是一个迭代器，函数返回某个值时，会停留在某个位置，返回函数值后，会在前面停留的位置继续执行， 直到程序结束
+
+##### yield用法
+
+* 示例
+
+  ~~~
+    def foo():
+          print("starting...")
+          while True:
+              res = yield 4
+              print("res:",res)
+      g = foo()
+      print(next(g))
+      print("*"*20)
+      print(next(g))
+  ~~~
+
+  ~~~
+   starting...
+      4
+      ********************
+      res: None
+      4
+  ~~~
+
+解析：
+
+1.程序开始执行以后，因为foo函数中有yield关键字，所以foo函数并不会真的执行，而是先得到一个生成器g(相当于一个对象)
+
+2.直到调用next方法，foo函数正式开始执行，先执行foo函数中的print方法，然后进入while循环
+
+3.程序遇到yield关键字，然后把yield想象成return,return了一个4之后，程序停止，并没有执行赋值给res操作，此时next(g)语句执行完成，所以输出的前两行（第一个是while上面的print的结果,第二个是return出的结果）是执行print(next(g))的结果，
+
+4.程序执行print("\*"*20)，输出20个\*
+
+5.又开始执行下面的print(next(g)),这个时候和上面那个差不多，不过不同的是，这个时候是从刚才那个next程序停止的地方开始执行的，也就是要执行res的赋值操作，这时候要注意，这个时候赋值操作的右边是没有值的（因为刚才那个是return出去了，并没有给赋值操作的左边传参数），所以这个时候res赋值是None,所以接着下面的输出就是res:None,
+
+6.程序会继续在while里执行，又一次碰到yield,这个时候同样return 出4，然后程序停止，print函数输出的4就是这次return出的4.
+
+**带yield的函数是一个生成器，而不是一个函数了，这个生成器有一个函数就是next函数，next就相当于“下一步”生成哪个数，这一次的next开始的地方是接着上一次的next停止的地方执行的，所以调用next的时候，生成器并不会从foo函数的开始执行，只是接着上一步停止的地方开始，然后遇到yield后，return出要生成的数，此步就结束。**
+
+
+
+##### send用法
+
+~~~
+ def foo():
+        print("starting...")
+        while True:
+            res = yield 4
+            print("res:",res)
+    g = foo()
+    print(next(g))
+    print("*"*20)
+    print(g.send(7))
+~~~
+
+
+
+~~~
+ starting...
+    4
+    ********************
+    res: 7
+    4
+~~~
+
+
+
+send函数的概念：send是发送一个参数给res的，yield(return)的时候，并没有把4赋值给res，下次执行的时候只好继续执行赋值操作，只好赋值为None了，而如果用send的话，开始执行的时候，先接着上一次（return 4之后）执行，先把7赋值给了res,然后执行next的作用，遇见下一回的yield，return出结果后结束。
+
+1.程序执行g.send(7)，程序会从yield关键字那一行继续向下运行，send会把7这个值赋值给res变量
+
+2.由于send方法中包含next()方法，所以程序会继续向下运行执行print方法，然后再次进入while循环
+
+3.程序执行再次遇到yield关键字，yield会返回后面的值后，程序再次暂停，直到再次调用next方法或send方法。
+
+
+
+#### 5. 生成器（generator）
 
 生成器仅仅保存了一套生成数值的算法，并且没有让这个算法现在就开始执行，而是我什么时候调它，它什么时候开始计算一个新的值，并给你返回。
 
@@ -467,6 +551,10 @@ def gen():
         print(se)
         print("------------3-------")
 ```
+
+
+
+
 
 
 
@@ -719,7 +807,83 @@ python中万物皆对象，函数也是对象，如何能让其他对象像函�
 
 **with的执行过程：**
 
-在执行 with 语句时，首先执行 with 后面的 open 代码，执行完代码后，会将代码的结果通过 as 保存到 f 中。然后在下面实现真正要执行的操作，在执行完操作后，并不需要写文件的关闭操作，文件会在使用完后自动关闭
+在执行 with 语句时，首先执行 with 后面的 open 代码，执行完代码后，会将open代码的结果通过 as 保存到 f 中。然后在下面实现真正要执行的操作，在执行完操作后，并不需要写文件的关闭操作，文件会在使用完后自动关闭
+
+~~~
+with context_expr [as var]:
+    with_body
+~~~
+
+1. 执行上下文表达式(context_expr)以获得上下文管理器对象。
+2. 加载上下文管理器对象的`__exit__()`方法，备用。
+3. 执行上下文管理器对象的`__enter__()`方法。
+4. 如果有`as var`语句，将`__enter__()`方法返回值绑定到 as 后面的 变量中。
+5. 执行 with 内的代码块(with_body)。
+6. 执行上下文管理器的__exit__()方法
+
+
+
+#### 自定义类实现上下文管理器
+
+~~~
+class OpenFile(object):
+    def __init__(self, filename):
+        self.file = open(filename, 'w+')
+ 
+    def __enter__(self):
+        return self.file
+ 
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.file.close()
+ 
+ 
+def main():
+    with OpenFile('text.txt') as f:
+        f.write('ok')
+ 
+        
+if __name__ == "__main__":
+    main()
+~~~
+
+
+
+#### contextilb模块实现上下文管理器
+
+**@contextmanager**，这是contextlib模块提供的一个装饰器，用于将一个函数声明上下文管理，无需创建一个类或者单独的`__enter__()`方法和`__exit__()`方法，就可以实现上下文管理。
+
+需要注意的是，被装饰的函数被调用的时候必须返回一个生成器，而且这个生成器只生成一个值，如果有as的话，该值讲绑定到with语句as子句的目标中。
+
+~~~
+from contextlib import contextmanager
+ 
+ 
+@contextmanager
+def tag(name):
+    print('<{}>'.format(name))
+    yield
+    print('</{}>'.format(name))
+ 
+ 
+with tag('title'):
+    print("This is a contextmanger test")
+~~~
+
+
+
+~~~
+<title>
+This is a contextmanger test
+</title>
+~~~
+
+输出流程：
+
+1. 先输出`yield`前的输出语句；（相当于enter）
+2. 然后再是`tag()`函数的输出语句，
+3. 最后是`yield`**后面的输出语句**（相当于exit)
+
+
 
 
 
@@ -5053,7 +5217,7 @@ var csrf_token = "{{ csrf_token() }}"
 
 ### 二、请求钩子
 
-* 又叫做“中间件”
+* 又叫做“中间件”，请求上下文
 
 在客户端和服务器交互的过程中，有些准备工作或扫尾工作需要处理，比如：
 
