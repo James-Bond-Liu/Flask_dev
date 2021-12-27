@@ -1793,10 +1793,12 @@ IParam：整形，消息的IParam参数
 
 ### 6、pytest测试用例参数化
 
-* 用于实现unittest中的ddt
+* 数据驱动自动化测试，相当于实现unittest中的ddt。在自动化测试中，一个测试用例对应一个测试点，通常一组测试数据无法完全覆盖测试范围，所以，需要参数化来传递多组数据。
+
 * 在测试用例的前面加上：**@pytest.mark.paramertize('参数名'，‘列表数据’)**
-  * 参数名：用来接收每一项数据，并作为测试用例数据
-  * 列表数据：一组测试数据
+  * 在使用`pytest.mark.parametrize()`传递参数化数据时，测试用例本身必须有参数。
+  * 参数名：以字符串的形式标识用例函数的参数，且和用例函数中的参数名必须相同。以逗号分隔的字符串
+  * 列表数据：参数值列表。若有多个形参，列表嵌套元组的形式。一组实参以元组形式存在，包含多组形参的所有实参
 
 ~~~python
 phone_data = [
@@ -1813,6 +1815,75 @@ def test_0_login_user_wrongformat(self, data1, access_web):
     access_web[1].login(data1['user'], data1['password'])
     # 断言：页面中提示请输入正确的手机号
     assert access_web[1].get_errorMsg_from_loginArea() == data1['check']
+~~~
+
+
+
+#### 1、参数化之一个参数（形参）
+
+* 一个参数，多个值
+
+~~~python
+@pytest.mark.parametrize("arg_1", [4399, 2012])
+def test_add_by_func_aaa(arg_1):
+	print(arg_1)
+	
+# test_case/test_func.py::test_add_by_func_aaa[4399] 4399
+PASSED
+# test_case/test_func.py::test_add_by_func_aaa[2012] 2012
+PASSED
+
+~~~
+
+
+
+#### 2、参数化之多个参数（形参）
+
+* 多个参数，多个值
+
+~~~python
+@pytest.mark.parametrize("arg_1, arg_2", [(4399, 'AAAA'), (2012, 'BBBB')])
+def test_add_by_func_aaa(arg_1,arg_2):
+	print("arg_1:{}  arg_2:{}".format(arg_1, arg_2))
+    
+# test_case/test_func.py::test_add_by_func_aaa[4399-AAAA] arg_1:4399  arg_2:AAAA
+PASSED
+# test_case/test_func.py::test_add_by_func_aaa[2012-BBBB] arg_1:2012  arg_2:BBBB
+PASSED
+
+~~~
+
+
+
+#### 3、多个参数混合使用
+
+* 笛卡尔乘积
+
+~~~python
+@pytest.mark.parametrize("arg_1", [4399,  2012, 1997])
+@pytest.mark.parametrize("arg_2", ['AAAA', 'BBBB', 'CCCC'])
+def test_add_by_func_aaa(arg_1,arg_2):
+	print("arg_1:{}  arg_2:{}".format(arg_1, arg_2))
+
+# test_case/test_func.py::test_add_by_func_aaa[AAAA-4399] arg_1:4399  arg_2:AAAA
+PASSED
+# test_case/test_func.py::test_add_by_func_aaa[AAAA-2012] arg_1:2012  arg_2:AAAA
+PASSED
+# test_case/test_func.py::test_add_by_func_aaa[AAAA-1997] arg_1:1997  arg_2:AAAA
+PASSED
+# test_case/test_func.py::test_add_by_func_aaa[BBBB-4399] arg_1:4399  arg_2:BBBB
+PASSED
+# test_case/test_func.py::test_add_by_func_aaa[BBBB-2012] arg_1:2012  arg_2:BBBB
+PASSED
+# test_case/test_func.py::test_add_by_func_aaa[BBBB-1997] arg_1:1997  arg_2:BBBB
+PASSED
+# test_case/test_func.py::test_add_by_func_aaa[CCCC-4399] arg_1:4399  arg_2:CCCC
+PASSED
+# test_case/test_func.py::test_add_by_func_aaa[CCCC-2012] arg_1:2012  arg_2:CCCC
+PASSED
+# test_case/test_func.py::test_add_by_func_aaa[CCCC-1997] arg_1:1997  arg_2:CCCC
+PASSED
+
 ~~~
 
 
