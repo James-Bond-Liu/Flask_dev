@@ -690,13 +690,155 @@ get请求的请求参数存在于URL中，“？”后面为参数，&为参数�
 
    请求头与响应头后面的空行是必须的。
 
-### 2、requests
+### 2、requests简介
 
 * 官方文档：https://docs.python-requests.org/zh_CN/latest/
-
 * Requests是Python语言的第三方的库，专门用于发送HTTP请求。
 * Requests支持HTTP连接保持和连接池，支持使用cookie保持会话，支持文件上传，支持自动响应内容的编码，支持国际化的URL和POST数据自动编码。
 * Requests会自动实现持久连接keep-alive，现代，国际化，友好。
+
+#### 1、7个主要方法
+
+**request**
+**requests.request(method, url, \**kwargs)**：构造一个请求，支撑以下各方法的基础方法。
+**method** ：请求方式，对应get/post等
+**url** ：网页链接
+***\*kwargs** ：关键字参数，可选，共13个
+
+
+
+**get**
+**requests.get(url, params, \**kwargs)**：从指定的资源请求数据，是获取HTML网页信息的主要方法，对应HTTP的GET。
+**params** ：字典或字节序列格式，将作为参数增加到url中，可选
+
+
+
+**post**
+**requests.post(url, data, json, \**kwargs)**：向指定的资源提交要被处理的数据，对应HTTP的POST。
+**data ：**data参数的对象一般是字典类型，在发出请求时会自动编码为表单形式
+**json ：**json参数会自动将字典类型的对象转换为json格式
+
+
+
+**head**
+**requests.head(url, \**kwargs)**：获取HTML网页头部信息的方法，对应HTTP的HEAD。
+
+
+
+**put**
+**requests.put(url, data, \**kwargs)**：向HTML网页提交PUT请求的方法，对应HTTP的PUT。
+
+
+
+**patch**
+**requests.patch(url, data, \**kwargs)**：向HTML网页提交局部修改请求，对应于HTTP的PATCH。
+
+
+
+**delete**
+**requests.delete(url, \**kwargs)**：向HTML页面提交删除指定资源的请求，对应HTTP的DELETE。
+
+
+
+#### 2、13个关键字参数
+
+**kwargs：控制访问的参数，均为可选项。
+
+**1. params**
+字典或字节序列格式，将作为参数增加到url中。
+
+![img](Python自动化.assets/v2-9625f3b5ca324a3c7afb42bf22ad544e_720w.jpg)
+
+
+**2. data**
+
+data参数的对象一般是字典类型，在发出请求时会自动编码为表单形式。也可以是字节序列或文件对象，作为Request的内容。
+
+![img](Python自动化.assets/v2-7380e5b4e2a5292ccc684aa3dc3db174_720w-16414492773804.jpg)
+
+
+**3. json**
+JSON格式的数据，作为Request的内容。json参数会**自动**将字典类型的对象转换为json格式。
+
+![img](Python自动化.assets/v2-f7f6f1f991d6971217b37010991f61b8_720w-16414492773806.jpg)
+
+
+**4. headers**
+字典格式，为请求添加 HTTP 头部信息，模拟浏览器进行访问。headers是解决requests请求反爬的方法之一。 headers中有很多内容，常用的是user-agent 和 host。
+
+![img](Python自动化.assets/v2-e38ff9c5ced54cdb451def61a345e813_720w.jpg)
+
+
+**5. cookies**
+cookies参数为字典格式的数据或CookieJar
+**什么是cookie？**
+当用户通过浏览器首次访问一个域名时，访问的web服务器会给客户端发送数据，这些数据就是cookie，它是为了辨别用户身份而储存在用户本地终端上的数据。cookie大部分都是加密的，cookie存在于缓存中或者硬盘中，在硬盘中的是一些文本文件，当访问该网站时，就会读取对应的网站的cookie信息。一般来说，一旦将cookie保存在计算机上，则只有创建该cookie的网站才能读取它。
+
+![img](Python自动化.assets/v2-894ea0003172738bd5ae50a6be1271ca_720w.jpg)
+
+
+**6. auth**
+身份验证。将用户名和密码以元组形式传递给auth参数时，rqeuests 将使用HTTP的认证功能来应用凭据。
+
+![img](Python自动化.assets/v2-5d64266cb16a4095e8ee3adf3acf79ac_720w.jpg)
+
+
+**7. files**
+传输文件。支持在一个请求中发送多个文件。
+
+![img](Python自动化.assets/v2-23a87d61989c244d786004b9c22a43c5_720w.jpg)
+
+
+**8. timeout**
+用于解决请求超时的问题。以秒为单位限制请求时间，如果服务器在设定的请求时间内没有应答，将引发一个异常。
+
+**9. proxies**
+字典类型，设定访问代理服务器，可以增加登陆认证。
+
+![img](Python自动化.assets/v2-212d2cf4d334d3429d69f9cc21d8e0d8_720w.jpg)
+
+
+**10. allow_redirects**
+重定向开关：True / False。默认为True，允许重定向；False禁止重定向。
+
+![img](Python自动化.assets/v2-f33a37a2c462935529ea5f437d132c7d_720w.png)
+
+**11. stream**
+获取内容立即下载开关：True / False，默认为True。
+
+**12. verify**
+请求验证SSL证书开关：True / False，默认为True。
+
+**13）cert**
+本地SSL证书路径。用于指定一个本地有效安全证书作为客户端证书。
+
+![img](Python自动化.assets/v2-59c3441b73afef94069cedc64789bd24_720w.jpg)
+
+
+
+#### 3、响应对象的5种属性
+
+**① r.status_code**
+HTTP请求的返回状态，200为正常，404为错误。
+
+**② r.raw**
+HTTP响应内容的原始形式。
+
+**③ r.text**
+HTTP响应内容的字符串形式，即url对应的页面内容。获取文本一般使用 r.text。
+
+**④ r.content**
+HTTP响应内容的字节形式（二进制形式 ）。获取图片或文件一般使用 r.content。
+
+**⑤ r.encoding**
+HTTP响应正文的编码，它的值可能是从HTTP响应头部或正文中解析出来的。
+当解析的编码方式不准确时，可以手动指定一种编码方式。如，r.encoding = ' utf-8 ' 。
+
+
+
+
+
+### 3、requests实战
 
 #### 1.requests模块之get请求
 
@@ -726,7 +868,7 @@ get请求的请求参数存在于URL中，“？”后面为参数，&为参数�
    * url，必填
    * data，选填，请求参数
    * json，选填，请求参数
-   * kwargs，选填，可以传入headers、cookies等
+   * kwargs，选填关键字参数，可以传入headers、cookies等
 
 2. 请求参数，data和json的区别
 
@@ -744,6 +886,8 @@ get请求的请求参数存在于URL中，“？”后面为参数，&为参数�
 
       * 清楚中传入请求头，header = {"content-type":"application/json"}
 * 需要将字典类型数据转换为json字符串。
+
+
 
 #### 3.requests模块之session请求
 
@@ -941,7 +1085,37 @@ print(res.elapsed.resolution)
 
 
 
+#### 7.实现文件的上传下载
 
+* 文件的上传下载都是以二进制的方式打开文件的，**b**
+
+* 上传
+
+  支持在一个请求中发送多个文件。
+
+  ~~~python
+  files = {'file':open('D:\\test_data\\summer_test_data_05.txt','rb')}  # 我们操作文件上传的时候，把目标文件以open二进制的方式打开，然后存储到变量file里面存到一个字典里面
+  upload_data = {"parentId":"","fileCategory":"personal","fileSize":179,"fileName":"summer_text_0920.txt","uoType":1}
+  upload_res = requests.post(url='www.baidu.com',data=upload_data,files=files)  # 将变量files传递给关键字参数files
+  ~~~
+
+  
+
+
+
+* 下载
+
+  ~~~python
+  # 小文件直接下载写入
+  import requests 
+  
+  url = 'http://***/test/demo.zip' 
+  res = requests.get(url) 
+  with open("demo3.zip", "wb") as code:
+  	code.write(res.content)
+  ~~~
+
+  
 
 
 
