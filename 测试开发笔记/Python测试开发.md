@@ -6308,3 +6308,222 @@ print(a.fetchone())
 
 
 
+### 四、ORM模型关系
+
+
+
+学生表(student)中的gid是学生所在的班级id，是引入了班级表(grade)中的主键id。那么gid就可以作为表student的外键。被引用的表，即表grade是主表;引用外键的表，即表student是从表，两个表是主从关系。表student用gid可以连接表grade中的信息，从而建立了两个表数据之间的连接。
+
+引入外键后，外键列只能插入参照列存在的值，参照列被参照的值不能被删除，这就保证了数据的参照完整性。
+
+
+
+外键：外键是用来再两个表的数据之间建立连接，他可以是一列也可以是多列。一个表中可以有一个或多个外键。
+
+​     一个表的外键可以是空值，若不为空值，则每一个外键值必须等于另外一个表中的主键的某个值。
+
+外键是一个表中的字段，他可以不是本表中的主键，但对应另外一个表的主键，外键的作用是保证数据引用的完整性。
+
+
+
+
+
+一对多模型关系定义步骤
+
+ 建立两个模型 roles 和 user 两者关系是一对多
+
+ 在user(多的一方)中添加roles(一方)的id作为外键, 两者形成关联
+
+如果两者之间要实现一对多和多对一的查询, 就在 roles(一方)当中建立一对多的对象, 使用relationship(第一个参数是多方模型类名(user), backref="多对一的查询对象") : users = db.relationship(''user'', backref='''role' , lazy='"动态手动加载"')
+
+
+
+backref
+
+
+
+~~~python
+class Project(db.Model):
+	id = db.column(db.Integer, primary_key = True)
+	modules = db.relationship('Module', backref='project')
+	
+class Module(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	project_id = db.Column(db.Integer, db.ForeignKey('porject.id'))
+~~~
+
+
+
+back_populates
+
+显示的说明两个模型表之间的关系
+
+~~~python
+class Project(db.Model):
+	id = db.column(db.Integer, primary_key = True)
+	# 这里的modules和Model里面的back_populaters='modules'相等
+	modules = db.relationship('Module', back_populates='project')
+	
+class Module(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	# 这里的project和Project里面的back_populaters='project'相等
+	project = db.relationship('Module', back_populates='modules')
+~~~
+
+
+
+
+
+backref    VS     back_populates
+
+back_populates需要双向显示说明，backref只需要指明一边隐式声明
+
+back_populates更麻烦，backref更简单
+
+back_populates更具有可读性，能够很快知道各个表之间的关系
+
+
+
+
+
+一对一关系
+
+
+
+~~~python
+class Project(db.Model):
+	id = db.column(db.Integer, primary_key = True)
+	# 这里的modules和Model里面的back_populaters='modules'相等
+	modules = db.relationship('Module', back_populates='project', uselist=False)
+	
+class Module(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	# 这里的project和Project里面的back_populaters='project'相等
+	project = db.relationship('Module', back_populates='modules', uselist=False)
+~~~
+
+
+
+多对多关系
+
+适用场景
+
+关系表只存储两个关联表的id作为外键，没有其他信息
+
+关联表并不能作为模型操作
+
+~~~
+xuanke = db.Table('xuanke', db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+							db.Column('subject_id', db.Integer, db.ForeignKey('subject.id')))
+							
+class User(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	subjects = db.relationship('Subject', secondary=xuanke, backref=db.backref('users', lazy='dynamic'))
+
+class Subject(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+~~~
+
+
+
+获取关系
+
+user=User.query.get(1)
+
+kecheng=user.subjects
+
+
+
+多对多关系需要获取额外内容
+
+适用场景
+
+关系表除了存储两个关联表的id还有其他信息，比如选课时间、分数。
+
+关联表并不能作为模型操作
+
+~~~
+class Xuanke(db.Model):
+	student_id = db.Column('student_id', db.Integer, db.ForeignKey('user.id'), primary_key=True)
+	subject_id = db.Column('subject_id', db.Integer,db.ForeignKey('subject.id'), primary_key=True)
+	
+class User(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(20), nullable=False)
+	subjects = db.relationship('Xuanke', backref='student')
+~~~
+
+
+
+获取关系
+
+~~~
+user = User.query.get(1)
+# 获取选课
+xuanke=user.subjects
+# 获取课程
+for ke in xuanke:
+	print(ke.subject)
+~~~
+
+
+
+
+
+自引用关系
+
+~~~
+class Follower(db.Model):
+	fensi_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+	guanzhuzhe_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+
+class User(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(20), nullable=False)
+	sbujects = db.relationship('Xuanke', back_populates='student')
+	fensis=db.relationship('Follower', foreign_keys = [Follower.guanzhuzhe_id], backref='guanzhuzhe')
+	guanzhuzhes = db.relationship('Follower', foreign_keys=[Follower.fensi_id], backref='fensi')
+~~~
+
+注意：不要使用back_populates，会出错
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
