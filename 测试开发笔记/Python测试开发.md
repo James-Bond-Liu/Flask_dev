@@ -6229,13 +6229,10 @@ db.session.delete(me)
 
 ##### 6、数据更新
 
-~~~
-user = User()
+~~~python
+user = User().query.get(id)
+user.name = 'panda'
 db.session.add(user)
-
-# 添加多个
-db.session.add_all([user1, user2])
-
 db.session.commit()
 ~~~
 
