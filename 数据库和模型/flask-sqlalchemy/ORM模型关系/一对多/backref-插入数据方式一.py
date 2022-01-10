@@ -19,6 +19,7 @@ class Project(db.Model):
 
     # 当查询项目得到一个project。然后调用project.modules就会返回该项目下的module对象列表
 
+
 # 多
 class Module(db.Model):
     __tablename__ = 'mode'
@@ -30,22 +31,54 @@ class Module(db.Model):
     # 当查询得到一个module的时候，想要获取module对应的项目信息直接module.project_module。即反向引用。
 
 
-@app.route('/insert_project')
-def insert_project():
+
+# 插入数据方式一
+# @app.route('/insert_project')
+# def insert_project():
+#     project1 = Project(name='HESS')
+#     project2 = Project(name='HXNP')
+#     db.session.add_all([project1, project2])
+#     db.session.commit()
+#     return 'insert_project successful'
+#
+#
+# @app.route('/insert_mode')
+# def insert_mode():
+#     mode1 = Module(name='ota', project_id=2)
+#     mode2 = Module(name='ctrller-manager', project_id=2)
+#     db.session.add_all([mode1, mode2])
+#     db.session.commit()
+#     return 'insert_mode successful'
+#
+
+
+# 插入数据方式二
+@app.route('/insert')
+def insert():
+    # 删除 所有继承自db.Model的表
+    db.drop_all()
+
+    # 创建 所有的继承自db.Model的表
+    db.create_all()
+
     project1 = Project(name='HESS')
     project2 = Project(name='HXNP')
-    db.session.add_all([project1, project2])
-    db.session.commit()
-    return 'insert_project successful'
+    mode1 = Module(name='ota')
+    mode2 = Module(name='ctrller-manager')
 
+    # 使用关系属性关联数据
+    project2.modules.append(mode1)
+    project2.modules.append(mode2)
 
-@app.route('/insert_mode')
-def insert_mode():
-    mode1 = Module(name='ota', project_id=2)
-    mode2 = Module(name='ctrller-manager', project_id=2)
-    db.session.add_all([mode1, mode2])
+    # mode1.project_module.append(project1)
+    # mode2.project_module.append(project1)
+
+    # 添加到数据库中
+    db.session.add_all([project1,
+                       project2])  # 可以直接将project1,project2,mode1,mode2四个数据添加到数据库中，替代了db.session.add_all(project1, project2, mode1, mode2)
+
     db.session.commit()
-    return 'insert_mode successful'
+    return 'insert successful'
 
 
 @app.route('/select1')  # 多对一进行查询
@@ -53,16 +86,20 @@ def mode_select_project1():
     mode = Module.query.filter_by(name='ota').first()  # 先获取mode对象，
     print(mode.project_module)  # 想要获取module对应的项目信息直接module.project_module
     print(mode.project_module.name)  # 获取mode对应项目的项目名称
+    mode.project_module.name = 'liufei'  # 更改表中某个字段
+    db.session.commit()
     return 'select successful'
 
 
 @app.route('/select2')  # 一对多进行查询
 def mode_select_project2():
     project = Project.query.filter_by(name='HXNP').first()  # 先获取project对象
+    print(project.name, project.id)
     print(project.modules)  # 想要获取project对应的接口module信息直接project.modules，返回相关的对象列表
-    print(project.modules[1].name)  # 获取项目对应接口的名字
+    # print(project.modules.name)  # 获取项目对应接口的名字
     return 'select successful'
 
 
 if __name__ == '__main__':
+    # db.create_all()
     app.run(debug=True)
