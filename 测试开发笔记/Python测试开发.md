@@ -6321,17 +6321,17 @@ print(a.fetchone())
 
 引入外键后，外键列只能插入参照列存在的值，参照列被参照的值不能被删除，这就保证了数据的参照完整性。
 
+多表关系中, 通过`外键`来关联数据
+
 
 
 #### 一对多模型关系
 
 ##### 定义步骤
 
-* 建立两个模型 user和 roles 两者关系是一对多
-
-* 在user(多的一方)中添加roles(一方)的id作为外键, 两者形成关联
-
-* 如果两者之间要实现一对多和多对一的查询, 就在 roles(一方)当中建立一对多的对象, 使用relationship(第一个参数是多方模型类名(user), backref="多对一的查询对象") : users = db.relationship(''user'', backref='''role' , lazy='"动态手动加载"')
+* 定义外键，在多的一方
+* 定义关系属性，在少的一方
+* 使用关系属性来关联数据
 
 
 
@@ -6346,6 +6346,37 @@ class Module(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	project_id = db.Column(db.Integer, db.ForeignKey('porject.id'))
 ~~~
+
+modules = db.relationship('Module', backref='project')
+
+ relationship函数：sqlalchemy对关系之间提供的一种便利的调用方式，关联不同的表；
+
+backref参数：对关系提供反向引用的声明
+
+project_id = db.Column(db.Integer, db.ForeignKey('porject.id'))
+
+ForeignKey参数：代表一种关联字段，将两张表进行关联的方式。选取另外一张表的某个字段（一般为另一张表的主键）
+
+
+
+
+
+addresses = db.relationship('Address', backref='person',lazy='dynamic')
+
+​    relationship函数：sqlalchemy对关系之间提供的一种便利的调用方式，关联不同的表；
+
+​    backref参数：对关系提供反向引用的声明，在Address类上声明新属性的简单方法，之后可以在my_address.person来获取这个地址的person；
+
+   lazy参数：决定了 SQLAlchemy 什么时候从数据库中加载数据，有四个可选方式：'select'，'joined'，'subquery'，'dynamic'：
+
+- 'select'（默认值）：SQLAlchemy 会在使用一个标准 select 语句时一次性加载数据；
+- 'joined'：让 SQLAlchemy 当父级使用 JOIN 语句是，在相同的查询中加载关系；
+- 'subquery'：类似 'joined' ，但是 SQLAlchemy 会使用子查询；
+- 'dynamic'：SQLAlchemy 会返回一个查询对象，在加载这些条目时才进行加载数据，大批量数据查询处理时推荐使用。
+
+person_id = db.Column(db.Integer, db.ForeignKey('person.id'))
+
+​    ForeignKey参数：代表一种关联字段，将两张表进行关联的方式，表示一个person的外键，设定上必须要能在父表中找到对应的id值。
 
 
 
@@ -6371,6 +6402,13 @@ class Module(db.Model):
 
 
 
+附加：
+
+- 增删改处理 失败后还需要进行回滚 `db.session.rollback()`
+- 删除一对多的关联数据时, `先删多的一方`, 再删除一的一方
+
+
+
 ##### backref    VS     back_populates
 
 * back_populates需要双向显示说明，backref只需要指明一边隐式声明
@@ -6378,8 +6416,6 @@ class Module(db.Model):
 * back_populates更麻烦，backref更简单
 
 * back_populates更具有可读性，能够很快知道各个表之间的关系
-
-
 
 
 
@@ -6403,23 +6439,45 @@ class Module(db.Model):
 
 #### 多对多关系
 
-适用场景
+* 多对多关系中, 必须创建独立的关系表来关联数据
 
-关系表只存储两个关联表的id作为外键，没有其他信息
 
-关联表并不能作为模型操作
 
-~~~
+定义步骤：
+
+- 定义**关系表**来设置外键。
+  - 关系表只存储两个关联表的id作为外键，没有其他信息
+  - 关系表并不能作为模型操作
+- 定义关系属性 **多对多关系属性, 还需要设置参数secondary="关系表名"**
+- 使用关系属性来关联数据
+
+
+
+~~~python
+# 定义一张关系表
 xuanke = db.Table('xuanke', db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
 							db.Column('subject_id', db.Integer, db.ForeignKey('subject.id')))
 							
 class User(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
+    # 定义关系属性
 	subjects = db.relationship('Subject', secondary=xuanke, backref=db.backref('users', lazy='dynamic'))
 
 class Subject(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 ~~~
+
+
+
+     subjects = db.relationship('Subject', secondary=xuanke, backref=db.backref('users', lazy='dynamic'))
+     
+     第一个参数是 映射向的模型名称,secondary 参数指向多对多的关系表,backref 参数指向反向映射字段，反向映射表通过该字段查询当前表内容,lazy各个参数的含义如下：
+     	select 访问该字段时候，加载所有的映射数据
+     	joined  对关联的两个表students和stu_cou进行join查询
+     	dynamic 不加载数据
+
+
+
 
 
 
