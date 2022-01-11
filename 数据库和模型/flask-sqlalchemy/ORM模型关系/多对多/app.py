@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 # 设置数据库连接地址
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:123456@localhost:3306/test"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:123456@localhost:3306/test1"
 # 是否追踪数据库修改  很消耗性能, 不建议使用
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 # 设置在控制台显示底层执行的SQL语句
@@ -28,7 +28,8 @@ class Student(db.Model):
     name = db.Column(db.String(64), unique=True)
     # 多对多关系属性, 还需要设置参数secondary="关系表名"
     # courses = db.relationship("Course", backref="students", secondary="table_stu_cur")
-    courses = db.relationship("Course", backref=db.backref('students', lazy='dynamic'), secondary='table_stu_cur')
+    # courses = db.relationship("Course", backref=db.backref('students', lazy='dynamic'), secondary='table_stu_cur')
+    courses = db.relationship("Course", backref='students', lazy='dynamic', secondary='table_stu_cur')
 
 
 # 课程表   多
@@ -43,7 +44,7 @@ class Course(db.Model):
 def index():
 
     # 删除 所有继承自db.Model的表
-    db.drop_all()
+    # db.drop_all()
     # 创建 所有的继承自db.Model的表
     db.create_all()
 
@@ -75,5 +76,5 @@ def select():
     return 'select successful'
 
 if __name__ == '__main__':
-    db.drop_all()
+    # db.drop_all()
     app.run(debug=True)

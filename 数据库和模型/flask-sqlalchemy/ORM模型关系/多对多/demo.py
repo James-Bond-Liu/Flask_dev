@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 # 设置数据库连接地址
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:123456@localhost:3306/test"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:123456@localhost:3306/test1"
 # 是否追踪数据库修改  很消耗性能, 不建议使用
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 # 设置在控制台显示底层执行的SQL语句
@@ -18,7 +18,7 @@ xuanke = db.Table('xuanke', db.Column('user_id', db.Integer, db.ForeignKey('user
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20))
-    subjects = db.relationship('Subject', backref=db.backref('users', lazy='dynamic'), secondary=xuanke)
+    # subjects = db.relationship('Subject', backref='users', lazy='dynamic', secondary=xuanke)
     # subjects = db.relationship('Subject', secondary=xuanke, bakcref=db.backref('users'), lazy='dynamic')
     # user = User.query.get(1)
     # user.subjects lazy：select >> 直接获得最终结果，[Subject(), Subject()]
@@ -27,6 +27,7 @@ class User(db.Model):
 class Subject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20))
+    users = db.relationship('User', backref='subjects', lazy='dynamic', secondary=xuanke)
 
 @app.route('/insert')
 def insert():
@@ -40,7 +41,7 @@ def insert():
     subject2 = Subject(name='侧开')
     subject3 = Subject(name='全程')
 
-    user1.subjects.append(subject1)
+    user1.subjects.append(subject2)
     user2.subjects.append(subject2)
     user1.subjects.append(subject3)
 
@@ -51,8 +52,12 @@ def insert():
 
 @app.route('/select')
 def select():
-    user = User.query.get(1)
-    s = user.subjects
+    # user = User.query.get(1)
+    # s = user.subjects.all()[1]
+    # print(s)
+    # return 'select success'
+    subject = Subject.query.get(1)
+    s = subject.users
     print(s)
     return 'select success'
 
