@@ -6469,6 +6469,8 @@ class Subject(db.Model):
 
 
 
+定义关系属性说明
+
      subjects = db.relationship('Subject', secondary=xuanke, backref=db.backref('users', lazy='dynamic'))
      
      第一个参数是 映射向的模型名称,secondary 参数指向多对多的关系表,backref 参数指向反向映射字段，反向映射表通过该字段查询当前表内容,lazy各个参数的含义如下：
@@ -6525,7 +6527,7 @@ for ke in xuanke:
 
 
 
-自引用关系
+#### 自引用关系
 
 ~~~
 class Follower(db.Model):
