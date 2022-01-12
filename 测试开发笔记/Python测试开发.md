@@ -6443,7 +6443,7 @@ class Module(db.Model):
 
 
 
-定义步骤：
+##### 定义步骤：
 
 - 定义**关系表**来设置外键。
   - 关系表只存储两个关联表的id作为外键，没有其他信息
@@ -6461,7 +6461,7 @@ xuanke = db.Table('xuanke', db.Column('user_id', db.Integer, db.ForeignKey('user
 class User(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
     # 定义关系属性
-	subjects = db.relationship('Subject', secondary=xuanke, backref=db.backref('users', lazy='dynamic'))
+	subjects = db.relationship('Subject', secondary=xuanke, backref='users', lazy='dynamic')
 
 class Subject(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
@@ -6469,25 +6469,35 @@ class Subject(db.Model):
 
 
 
-定义关系属性说明
+##### 定义关系属性说明
 
-     subjects = db.relationship('Subject', secondary=xuanke, backref=db.backref('users', lazy='dynamic'))
-     
-     第一个参数是 映射向的模型名称,secondary 参数指向多对多的关系表,backref 参数指向反向映射字段，反向映射表通过该字段查询当前表内容,lazy各个参数的含义如下：
-     	select 访问该字段时候，加载所有的映射数据
-     	joined  对关联的两个表students和stu_cou进行join查询
-     	dynamic 不加载数据
+subjects = db.relationship('Subject', secondary=xuanke, backref='users', lazy='dynamic')
 
-
-
-
+* 第一个参数是 映射指向的模型名称,
+* secondary 参数指向多对多的关系表,backref 参数指向反向映射字段，反向映射表通过该字段查询当前表内容,
+*  lazy各个参数的含义如下
+  * select 默认值，访问该字段时候，加载所有的映射数据。直接获得最终结果，[<Course 1>, <Course 2>]
+  * joined  对关联的两个表students和stu_cou进行join查询
+  * dynamic 不加载数据。得到一个query对象，需要进行后续操作才能获取到最终结果。只有正向映射引用时(student.courses)才会返回一个query对象，反向映射引用（course.students）直接返回最终结果
 
 
-获取关系
+
+
+
+##### 获取关系
 
 user=User.query.get(1)
 
 kecheng=user.subjects
+
+~~~python
+user = User.query.get(1)
+# 获取选课
+xuanke=user.subjects
+# 获取课程
+for ke in xuanke:
+	print(ke.subject)
+~~~
 
 
 
@@ -6509,21 +6519,6 @@ class User(db.Model):
 	name = db.Column(db.String(20), nullable=False)
 	subjects = db.relationship('Xuanke', backref='student')
 ~~~
-
-
-
-获取关系
-
-~~~
-user = User.query.get(1)
-# 获取选课
-xuanke=user.subjects
-# 获取课程
-for ke in xuanke:
-	print(ke.subject)
-~~~
-
-
 
 
 

@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 # 设置数据库连接地址
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:123456@localhost:3306/test1"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:123456@localhost:3306/test"
 # 是否追踪数据库修改  很消耗性能, 不建议使用
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 # 设置在控制台显示底层执行的SQL语句
@@ -27,10 +27,14 @@ class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     # 多对多关系属性, 还需要设置参数secondary="关系表名"
-    # courses = db.relationship("Course", backref="students", secondary="table_stu_cur")
-    # courses = db.relationship("Course", backref=db.backref('students', lazy='dynamic'), secondary='table_stu_cur')
+    # courses = db.relationship("Course", backref="students", secondary="table_stu_cur")  # lazy参数默认为select
     courses = db.relationship("Course", backref='students', lazy='dynamic', secondary='table_stu_cur')
 
+    # student = Student.query.get(1)
+    # student.courses  lazy：select >> 直接获得最终结果，[<Course 1>, <Course 2>]
+    # student.courses  lazy：dynamic >> 得到一个query对象，需要进行后续操作才能获取到最终结果。student.courses.filter().all() >> [<Course 1>, <Course 2>]
+
+    # 只有正向映射引用时(student.courses)才会返回一个query对象，反向映射引用（course.students）直接返回最终结果
 
 # 课程表   多
 class Course(db.Model):
@@ -65,14 +69,15 @@ def index():
     db.session.add_all([stu1, stu2])
     db.session.commit()
 
-    print(stu1.courses)
-    print(cur2.students)
+    print(stu1.courses)  # 正向映射，SELECT courses.id AS courses_id, courses.name AS courses_name FROM courses, table_stu_cur WHERE %(param_1)s = table_stu_cur.stu_id AND courses.id = table_stu_cur.cur_id
+    print(cur2.students)  # 反向映射，[<Student 1>, <Student 2>]
     return 'index'
 @app.route('/select')
 def select():
     student = Student.query.filter_by(name='panda').first()
-    print(student.courses)  # 返回和panda关联的course列表对象
-    print(student.courses[1].name)
+    print(student.courses)  # Student模型实例调用属性courses后返回一个query对象
+    # print(student.courses[1].name)
+    print(student.courses.filter(Course.name=='python').all())  # query对象经过后续操作才能返回最终结果
     return 'select successful'
 
 if __name__ == '__main__':

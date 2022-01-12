@@ -16,7 +16,7 @@ class Project(db.Model):
     # modules和数据库中的表没有关系，不会在表中创建字段modules
     # db.relationship建立一个映射关系（声明本模型Project和哪个数据库模型建立映射关系）
     # modules = db.relationship('Module', backref='project_module')  # modules，一对多调用时的查询对象
-    modules = db.relationship('Module', backref = db.backref('project_module', lazy='select'))
+    modules = db.relationship('Module', backref = 'project_module', lazy='select')
 
 
     # 当查询项目得到一个project。然后调用project.modules就会返回该项目下的module对象列表
