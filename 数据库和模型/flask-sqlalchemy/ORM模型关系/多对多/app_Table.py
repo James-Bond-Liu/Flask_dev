@@ -14,7 +14,8 @@ db = SQLAlchemy(app)
 
 """多对多 通过关系属性来关连/查询数据 操作简单  1> 定义关系表来设置外键 2> 定义关系属性 3> 使用关系属性来关联数据"""
 
-# 创建关系表  多对多关系必须创建单独的表来记录关联数据
+# 创建关系表  多对多关系必须创建单独的表来记录关联数据。
+# 注意此表不是ORM模型，不能进行相关的ORM操作
 t_stu_cur = db.Table("table_stu_cur",
          db.Column("stu_id", db.Integer, db.ForeignKey("students.id"), primary_key=True),
          db.Column("cur_id", db.Integer, db.ForeignKey("courses.id"), primary_key=True)

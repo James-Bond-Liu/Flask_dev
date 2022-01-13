@@ -6437,7 +6437,7 @@ class Module(db.Model):
 
 
 
-#### 多对多关系
+#### 多对多关系-db.Table
 
 * 多对多关系中, 必须创建独立的关系表来关联数据
 
@@ -6460,7 +6460,7 @@ xuanke = db.Table('xuanke', db.Column('user_id', db.Integer, db.ForeignKey('user
 							
 class User(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-    # 定义关系属性
+    # 定义关系属性，secondary只能接收一个db.Table对象
 	subjects = db.relationship('Subject', secondary=xuanke, backref='users', lazy='dynamic')
 
 class Subject(db.Model):
@@ -6482,13 +6482,42 @@ subjects = db.relationship('Subject', secondary=xuanke, backref='users', lazy='d
 
 
 
-
-
 ##### 获取关系
 
+~~~python
 user=User.query.get(1)
 
 kecheng=user.subjects
+~~~
+
+
+
+#### 多对多关系-db.Model
+
+* 通常用在获取关系表中额外的内容
+* 关系表除了存储两个关联表的id还有其他信息，比如选课时间、分数。此时将关系表设置成ORM模型。使其能够进行ORM相关的操作。
+
+
+
+~~~python
+class Xuanke(db.Model):
+	student_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+	subject_id = db.Column(db.Integer,db.ForeignKey('subject.id'), primary_key=True)
+	score = db.Column(db.Integer)
+	
+class User(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(20), nullable=False)
+	subjects = db.relationship('Xuanke', backref='student')
+
+class Subject(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(20), nullable=False)
+	students = db.relationship('Xuanke', backref='subject')
+	
+~~~
+
+
 
 ~~~python
 user = User.query.get(1)
@@ -6501,24 +6530,9 @@ for ke in xuanke:
 
 
 
-多对多关系需要获取额外内容
 
-适用场景
 
-关系表除了存储两个关联表的id还有其他信息，比如选课时间、分数。
 
-关联表并不能作为模型操作
-
-~~~
-class Xuanke(db.Model):
-	student_id = db.Column('student_id', db.Integer, db.ForeignKey('user.id'), primary_key=True)
-	subject_id = db.Column('subject_id', db.Integer,db.ForeignKey('subject.id'), primary_key=True)
-	
-class User(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	name = db.Column(db.String(20), nullable=False)
-	subjects = db.relationship('Xuanke', backref='student')
-~~~
 
 
 

@@ -7,7 +7,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 
-# 一
+# 一，项目
 class Project(db.Model):
     __tablename__ = 'project'  # 指定表名， 如果不指定表名则默认将类名【User】小写之后为表名
     id = db.Column(db.Integer, primary_key=True)
@@ -22,7 +22,7 @@ class Project(db.Model):
     # 当查询项目得到一个project。然后调用project.modules就会返回该项目下的module对象列表
 
 
-# 多
+# 多，接口
 class Module(db.Model):
     __tablename__ = 'mode'
     id = db.Column(db.Integer, primary_key=True)  # 数据类型及列属性直接从db导入
@@ -54,8 +54,6 @@ def insert_mode():
     return 'insert_mode successful'
 
 """
-
-
 
 # 插入数据方式二
 @app.route('/insert')
