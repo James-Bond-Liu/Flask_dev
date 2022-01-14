@@ -6078,10 +6078,12 @@ Flask-SQLAlchemy 要求每个模型都要定义主键, 这一列通常命名为 
 
 #### 四、数据库操作
 
-##### 1、创建表
+##### 1、更新数据库
 
 ~~~python
-db.create_all()
+db.drop_all()  # 从数据库中删除所有继承Model模型的表
+
+db.create_all()  # 从数据库中创建继承Model模型的表
 ~~~
 
 
@@ -6093,10 +6095,10 @@ from d3_flask_migrate import db
 from db_flask_migrate import User
 
 user = User(username='demo')
-db.session.add(user)  # 保存到会话
-# 添加多个
-db.session.add_all([user1, user2])
-db.session.commit()		
+db.session.add(user)  # 添加一个对象到会话
+
+db.session.add_all([user1, user2])  # 添加多个对象到会话。db.session.add_all(参数必须是一个列表list)
+db.session.commit()  # 将对象提交到会话中
 
 ~~~
 
@@ -6147,7 +6149,7 @@ users = User.query.get({"id":1, "project_id":3})  # 有多个主键时需要提�
 
 ###### 4、filter_by()
 
-* 用于简单的等值查询，不支持比较运算符。
+* 简单的等值查询，不支持比较运算符。
 * 直接使用**属性名=值**
 
 ~~~python
@@ -6212,11 +6214,14 @@ User.query.filter(User.email.endswith('@example.com')).all()
 
 
 
-##### 4、删除
+##### 4、删除某条数据
 
-~~~
-db.session.delete(me)
->>> db.session.commit()
+~~~python
+# 删除username 是 ‘张大力’的这条数据
+res = Book.query.filter(Book.username == "张大力").first()
+db.session.delete(res)
+db.session.commit()
+
 ~~~
 
 
@@ -6229,12 +6234,36 @@ db.session.delete(me)
 
 ##### 6、数据更新
 
+* 先获取数据，然后在修改数据，修该完需要提交数据。
+
 ~~~python
-user = User().query.get(id)
+user = User.query.get(id)
 user.name = 'panda'
-db.session.add(user)
+db.session.commit()
+
+
+res = Book.query.filter(Book.username == "吕小辰").all()
+res[0].username = '张大力'
 db.session.commit()
 ~~~
+
+
+
+##### 7、数据库会话回滚
+
+~~~python
+db.session.rollback()  # 方法可实现在会话前数据库的状态
+~~~
+
+
+
+##### 8、总结
+
+
+
+
+
+![image-20220114110504304](Python测试开发.assets/image-20220114110504304.png)
 
 
 
@@ -6530,12 +6559,6 @@ for ke in xuanke:
 
 
 
-
-
-
-
-
-
 #### 自引用关系
 
 ~~~
@@ -6555,7 +6578,7 @@ class User(db.Model):
 
 
 
-
+## 十、核心机制
 
 
 
