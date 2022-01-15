@@ -1,28 +1,17 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2021/10/20 19:17
-# @Author  : Liu Fei
-# @File    : 配置项.py
-# @Software: PyCharm
-from flask import Flask, Config
-
+from flask import Flask
 app = Flask(__name__)
 
-# 设置配置项 
+# app.config其实是实例化了flask.config.Config类的实例，字典dict结构
 app.config['DEBUG'] = True
-app.config['port'] = 5002
+# app.config.update(DEBUG=True)
+
 
 @app.route('/')
-def index():
-    return 'hello'
-
-# 配置项
-
+def run():
+    return 'welcom to my world'
 
 if __name__ == '__main__':
-    app.run(port=app.config['port'], debug=app.config['DEBUG'])
-
-
-
+    app.run()
 
 """
 

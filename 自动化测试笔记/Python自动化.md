@@ -157,6 +157,20 @@ result = dict(zip(s1,s2))  # {'key1':'value1', 'key2','value2'}
 
 ​	字典名[老key] = value
 
+#### 5.update修改/新增元素
+
+~~~python
+one = {'name':'panda', 'age':4}
+
+one.update(name='tiger', address='中国成都')  # 可以直接修改存在的KEY，若不存在则新增元素
+
+print(one)  # {'name': 'tiger', 'age': 4, 'address': '中国成都'}
+~~~
+
+
+
+
+
 ### 5、运算符
 
 * 加+、减-、乘*、除/、模%。模运算-取余运算，一般用来判断奇偶的问题
@@ -165,6 +179,8 @@ result = dict(zip(s1,s2))  # {'key1':'value1', 'key2','value2'}
 * 逻辑运算，and，or，not。返回结果布尔值
 * 成员运算符，in，not in。返回结果布尔值。
   * 对于字典只能判断key是否存在于字典中
+
+
 
 ### 6、函数
 

@@ -3150,6 +3150,96 @@ run方法使用的时werkzeug里的run_simple(host, port,self, **options)方法�
 
 host和port等都可以在run里指定参数，但是他们也可以通过配置项/配置文件的形式来修改。
 
+##### 方式一、属性
+
+~~~
+app.secret_key = ['1111111']
+app.debug = True
+
+# PS： 由于Config对象本质上是字典，所以还可以使用app.config.update(...)
+app.config.update(DEBUG=True)
+app.config['SECRET_KEY'] = '11111'
+~~~
+
+
+
+##### 方式二、文件
+
+~~~python
+# settings.py文件内容
+SECRET_KEY = '2222'
+
+# app.py
+app.config.from_pyfile('settings.py')
+~~~
+
+
+
+##### 方式三、环境变量+文件
+
+~~~python
+# app.py
+import os
+os.environ['xxx'] = 'settings.py'
+app.config.from_envvar('xxx')
+
+# settings.py
+SECRET_KEY = '2222'
+~~~
+
+
+
+##### 方式四、json文件
+
+~~~python
+# app.py
+app.config.from_json("settings.py")
+
+# settings.py(必须是json格式，因为内部会执行json.loads)
+{"SECRET_KEY":"21212"}
+~~~
+
+
+
+##### 方式五、字典格式
+
+~~~python
+app.config.from_mapping({'SECRET_KEY':21121})
+~~~
+
+
+
+##### 方式六、配置类（推荐）
+
+~~~python
+# app.py
+# 使用时只需要修改配置类
+import settings
+app.config.from_object(settings.BaseConfig)
+
+# settings.py
+class BaseConfig(object):
+    # 基础配置
+    NNN = 1
+    AAA = 0
+
+class TestConfig(BaseConfig):
+    # 测试环境配置
+    AAA = 111
+
+class DevConfig(BaseConfig):
+    # 开发环境配置
+    AAA = 222
+
+class ProConfig(BaseConfig):
+    # 线上环境配置
+    AAA = 333
+~~~
+
+
+
+
+
 #### 配置文件的重要性
 
 如果现在项目要部署给别人使用，debug这样的东西就要关了。port也有可能需要修改，那是不是要上线以后再手动去修改呢？？？
