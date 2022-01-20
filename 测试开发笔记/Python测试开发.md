@@ -6347,7 +6347,21 @@ db.session.rollback()  # 方法可实现在会话前数据库的状态
 
 
 
-##### 8、总结
+##### 8、关联查询
+
+* 多个表进行关联查询（join），多表之间可能有关系也可能没有关系
+
+~~~
+m = db.session.query(Module, Project).filter(Project.id == Module.project_id == 2).all()
+~~~
+
+* db.session.query(模型名称)
+* filter(查询条件)
+* all()获取结果
+
+
+
+##### 9、总结
 
 
 
@@ -6671,6 +6685,14 @@ class User(db.Model):
 
 
 ## 十、核心机制
+
+
+
+四大变量脱离请求环境是无法访问的，经典错误：outside context
+
+
+
+
 
 
 
