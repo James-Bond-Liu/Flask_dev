@@ -955,7 +955,7 @@ This is a contextmanger test
 
 默认情况下，类的实例有一个字典用来存储属性，这对于具有很少实例变量的对象会很浪费空间。
 
-#### 4. `__slots`
+#### 4. `__slots__`
 
 通过在类定义中定义`__slots__`来覆盖默认的`__dict__`行为。`__slots__`声明接受一个实例变量序列。当一个类需要创建大量实例时，可以通过`__slots__`声明实例所需要的属性，它的作用是阻止在实例化类时为实例分配`__dict__`，但是类本身还是分配`__dict__`
 
@@ -6692,11 +6692,71 @@ class User(db.Model):
 
 
 
+栈：就是指数据暂时存储的地方，所以才有进栈、出栈的说法。栈：后进先出 队列：先进先出
+
+
+
+一个完整的请求路线
+
+
+
+1、最小原型里面的app是一个函数，而Flask里面app是对象，对象被调用是执行__call__方法
+
+2、app.__call__里面的函数：wsgi_app()
+
+3、wsgi_app源码：会通过环境变量数据实例化一个RequestContext(environ)，并执行ctx.push() 将这个请求上下文推入一个栈中。
+
+4、request_ctx.push()先判断一下是否有一个appContext，没有的话推入一个。
+
+5、_request_ctx_stack.top 就是现在的请求对象——current_app
+
+6、_app_ctx_stack.top 就是现在的app对象——request
 
 
 
 
 
+
+
+1、当一个请求进入的时候，[Flask](https://so.csdn.net/so/search?q=Flask&spm=1001.2101.3001.7020)框架首先会实例化一个Request Context，封装了请求信息，保存在Request中。生成请求上下文后，Flask框架会将请求上下文推入到_request_ctx_stack栈中。调用的就是Request Context上下文的push方法
+
+![img](Python测试开发.assets/1445455-20181211141055784-447703917.png) 
+
+  ![img](Python测试开发.assets/1445455-20181211141634850-1783691259.png)
+
+ 
+
+ 2、App Context 是如何入栈的呢？
+
+　　Request Context在入栈之前，会先去app_ctx_stack栈顶检查下，栈顶元素是否存在，如果栈顶元素为空或者不是当前对象，那么Flask会把App Context推入到app_ctx_stack栈中，然后才会把Request Context推入到request_ctx_stack中。
+
+ 　![img](Python测试开发.assets/1445455-20190128171225651-2105135493.png)
+
+ 
+
+3、request和current_app，这两者用于都是指向各自栈的栈顶的，也就是说使用current_app和request的时候，都是在间接的操作_app_ctx_stack和_request_ctx_context栈顶元素。
+
+　　![img](Python测试开发.assets/1445455-20181211143312804-827732898.png)
+
+　　
+
+　　如果栈顶元素时空的，Local Proxy将会出现unbound，这时候使用他们就会报出 **working outside application context**的错误，这个错误在Flask中，经常不小心就会遇到。
+
+　　所以出现这个错误的解决方案就是：当我们要使用current_app的时候，如果栈顶元素为空，那我们手动的将app context推入栈中，就不会出现这种情况了。
+
+　　一般流程是：
+
+　　　　ctx = app.get_context()：获得APPContext应用上下文对象，
+
+　　　　然后调用 ctx.push() 方法就可以将其推入到栈中
+
+　　　　在使用完毕后，还需要调用ctx.pop() 将其从栈中弹出。
+
+　　上面的代码 可以 结合 with 语句 改写成上下文管理的方式 
+
+　　　　with app.app_context():
+
+　　　　　　pass
 
 
 
