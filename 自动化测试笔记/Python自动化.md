@@ -618,7 +618,27 @@ ab.py尝试打开b_file下的a.txt：../b_file/a.txt
 
 
 
-### 13、离线安装库
+### 13、pip安装第三方库
+
+#### pip命令常见操作
+
+~~~python
+pip install XXX #安装包
+
+pip install XXX==2.2.3 #指定安装包的版本
+
+pip install --upgrade XXX  #更新包
+
+pip uninstall XXX  #卸载包
+
+pip install XXX -i http://pypi.douban.com/simple/   # 指定源
+
+python -m pip install --upgrade pip  # 升级pip命令
+~~~
+
+
+
+#### 离线安装库
 
 #### 1.pip离线更新安装
 
@@ -628,7 +648,7 @@ ab.py尝试打开b_file下的a.txt：../b_file/a.txt
 #### 2、离线安装第三方库
 
 1. 将第三方库的离线安装包*whl保存至python的lib目录
-2. 命令行窗口用cd命令跳转到whl文件所在目录，然后使用命令pip install ***.whl即可完成whl文件的安装。
+2. 命令行窗口用cd命令跳转到whl文件所在目录，然后使用命令python -m pip install ***.whl即可完成whl文件的安装。
    1. 或者在whl文件所在目录执行python setup install *.whl  
 
 
@@ -2108,6 +2128,8 @@ PASSED
 
 ### 9、pytest-allure报告
 
+#### 1、安装查看
+
 * 安装插件，allure-pytest
 
 * 生成报告命令：pytest  --alluredir=相对路径(指定测试报告目录即可，不用像上面一样指定文件名)
@@ -2130,6 +2152,27 @@ PASSED
   - 打开报告
 
     `allure open -h 127.0.0.1 -p 8883 ./report/`
+
+#### 2、allure测试用例说明
+
+* https://www.cnblogs.com/Zhan-W/p/13141219.html
+
+| Allure用例描述            |                    |                                               |
+| :------------------------ | ------------------ | --------------------------------------------- |
+| 使用方法                  | 参数值             | 参数说明                                      |
+| @allure.epic()            | epic描述           | 定义项目、当有多个项目是使用。往下是feature   |
+| @allure.feature()         | 模块名称           | 用例按照模块区分，有多个模块时给每个起名字    |
+| @allure.story()           | 用例名称           | 一个用例的描述                                |
+| @allure.title(用例的标题) | 用例标题           | 一个用例标题                                  |
+| @allure.testcase()        | 测试用例的连接地址 | 自动化用例对应的功能用例存放系统的地址        |
+| @allure.issue()           | 缺陷地址           | 对应缺陷管理系统里边的缺陷地址                |
+| @allure.description()     | 用例描述           | 对测试用例的详细描述                          |
+| @allure.step()            | 操作步骤           | 测试用例的操作步骤                            |
+| @allure.severity()        | 用例等级           | blocker 、critical 、normal 、minor 、trivial |
+| @allure.link()            | 定义连接           | 用于定义一个需要在测试报告中展示的连接        |
+| @allure.attachment()      | 附件               | 添加测试报告附件                              |
+
+只有当用例上使用allure的语法糖，allure的测试报告才能更加仔细详尽的说明。
 
 
 
