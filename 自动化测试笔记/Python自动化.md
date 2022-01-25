@@ -1896,11 +1896,12 @@ IParam：整形，消息的IParam参数
 
 ### 2、pytest收集测试用例规则
 
-* 默认从当前目录下收集测试用例。即在哪个目录下运行pytest命令，则从哪个目录下收集
+* 默认从当前目录下收集测试用例。即在哪个目录下运行pytest命令，则从哪个目录下收集，pytest可以递归搜集目录
 * 规则：
   * 测试用例文件命名规则：test\_*.py或\*_test.py
-  * 测试用例函数以test_开头命名
+  * 测试用例函数名规则：以test_开头命名
   * 测试用例类以Test开头，并且测试用例类没有init函数。
+  * python包规则：需要有`__init__.py`文件
 
 ### 3、对测试用例打标签
 
@@ -1908,7 +1909,10 @@ IParam：整形，消息的IParam参数
 * 使用方法：
   * 在测试用例/测试类前加上：**@pytest.mark.标签名**。例如@pytest.mark.smoke
   * 可以在一个测试用例/测试类上加多个标签
-* 单独执行带有某种标签的测试用例：pytest -m 标签名（在终端执行命令）
+* 单独执行带有某种标签的测试用例
+  * 在该用例文件下执行pytest.main(['-m=smoke']) 无效，不会筛选带有标签的用例
+  * 单独写一个执行pytest的文件，执行pytest.main(['-m=smoke'])函数，会筛选带有标签的用例
+  * pytest -m 标签名（在终端执行命令），也会筛选带有标签的用例
 
 
 
@@ -2098,7 +2102,7 @@ PASSED
 
 1. 生成JunitXml格式报告：--junitxml=path/文件名.xml——常用于dign
 2. 生成result log格式报告：--resultlog=path/log.txt
-3. 生成HTML格式报告：--html=report/t文件名.html
+3. 生成HTML格式报告：--html=report/t文件名.html（需要安装pytest-html插件）
 
 
 
@@ -2106,13 +2110,40 @@ PASSED
 
 * 安装插件，allure-pytest
 
-* 查看allure的测试报告目录命令：
-
-  allure	server	allure目录(绝对路径)——在cmd命令行执行
-
 * 生成报告命令：pytest  --alluredir=相对路径(指定测试报告目录即可，不用像上面一样指定文件名)
 
-* 
+* 查看allure的测试报告
+
+  * 安装windows的allure插件，并将路径添加到环境变量中
+  * allure	serve	allure目录(绝对路径)——在cmd命令行执行
+
+* **方式一：直接打开默认浏览器展示报告（常用）**
+
+  * allure serve ./result/
+
+* 方式二：从结果生成报告
+
+  - 生成报告
+
+    `allure generate ./result/ -o ./report/ --clean` (覆盖路径加--clean)
+
+  - 打开报告
+
+    `allure open -h 127.0.0.1 -p 8883 ./report/`
+
+
+
+### 10、执行测试用例
+
+在项目的根目录下创建一个run执行用例的入口
+
+只需要写简单的两行代码
+
+~~~python 
+import pytest
+# 不带参数，默认运行的是当前目录及子目录的所有文件夹的测试用例
+pytest.main()
+~~~
 
 
 
