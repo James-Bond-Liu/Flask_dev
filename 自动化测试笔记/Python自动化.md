@@ -1153,6 +1153,39 @@ print(res.elapsed.resolution)
 
   
 
+#### 8.HTTP设置短链接、长连接
+
+* HTTP的长连接和短连接本质上是**TCP的长连接和短连接**
+
+* HTTP长连接的优点：
+
+  　　1）通过开启和关闭更少的TCP连接，节约CPU时间和内存。
+
+  　　2）通过减少TCP开启和关闭引起的包的数目，降低网络阻塞
+
+* HTTP长连接的缺点：
+
+  ​    服务器维护一个长连接会增加开销。
+
+* HTTP短连接的优点：
+
+  ​	服务器不用为每个客户端连接分配内存来记忆大量状态，也不用在客户端失去连接时去清理内存，节省服务器端资源，以更高效地去处理业务。
+
+* HTTP短连接的缺点：
+
+  　如果客户请求频繁，将在TCP的建立和关闭操作上浪费时间和带宽。
+
+~~~python
+header = {'Connection':'close'}  # 设置HTTP短链接
+
+header = {'Connection':'keep-alive'}  # 设置HTTP长连接，有过期时间
+
+header = {'Connection':'keep-alive', 'Keep-Alive':timeout=60}  # 设置HTTP长连接，无过期时间
+
+~~~
+
+
+
 
 
 
