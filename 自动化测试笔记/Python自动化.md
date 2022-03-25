@@ -612,13 +612,84 @@ ab.py尝试打开b_file下的a.txt：../b_file/a.txt
 
 * json.loads 用于解码 JSON 数据。该函数返回 Python 字段的数据类型。
 
+
+
+
+### 13、Python接受文件外部传递的参数
+
+#### 1、sys.argv列表
+
+~~~python
+# 文件demo.py
+import sys
+
+for i in sys.argv:
+  print(i)
+
+# 在终端命令行执行该文件
+# python demo.py 1 3 5 6 7
+# 输出：demo.py 1 3 5 6 7
+~~~
+
+* 指定参数时，使用空格隔开就可以，缺点是我们必须脚本的顺序指定参数较多不建议使用。
+* sys.argv是一个列表，第一个元素为py文件本身即文件名，后续元素为命令行向文件中传输的参数
+
+
+
+#### 2、利用argparse模块
+
+* 位置参数
+
+  ~~~python
+  import argparse
+  
+  """argparse--位置参数, 传入参数必须按照顺序传入"""
+  # 创建一个解析对象
+  parser1 = argparse.ArgumentParser(description='位置参数')
+  
+  # 向对象中添加位置参数
+  # integers 参数名
+  # type 传入参数的数据类型, 该关键词可以传入list, str, tuple, set, dict等
+  # help 该参数的提示信息
+  # nargs是用来说明传入的参数个数，'+' 表示传入至少一个参数，'*' 　表示参数可设置零个或多个，'?'　表示参数可设置零个或一个
+  parser1.add_argument('param1', type=int, nargs='+', help='需要传入的数字')
+  
+  parser1.add_argument('param2', type=str, help='姓')
+  
+  parser1.add_argument('param3', type=str, help='名')
+  
+  # 对添加的参数进行解析
+  args1 = parser1.parse_args()  # args类似于python的字典
+  
+  # 使用 arg.参数名来提取传入的参数
+  print(args1)  # 在命令行中输入 python argument.py 5，输出 5
+  ~~~
+
   
 
+* 可选参数（即选项参数）
 
 
 
+~~~python
+import argparse
 
-### 13、pip安装第三方库
+"""argparse--可选参数， 相当于关键字传参，不必考虑顺序"""
+
+parser2 = argparse.ArgumentParser(description='可选参数')
+
+parser2.add_argument('--file', type=str, default='demo.txt', help='文件名')  # default,对可选参数file设定默认值为demo.txt
+
+parser2.add_argument('--path', type=str, required=True, help='文件路径')  # 设定可选参数path为必需参数
+
+args2 = parser2.parse_args()
+
+print(args2.path+args2.file)  # 在命令行输入python argument.py --path=c:/workfiles/ESS/ --file=ess_data
+~~~
+
+
+
+### 14、pip安装第三方库
 
 #### pip命令常见操作
 
@@ -1161,7 +1232,7 @@ print(res.elapsed.resolution)
 
   　　1）通过开启和关闭更少的TCP连接，节约CPU时间和内存。
 
-  　　2）通过减少TCP开启和关闭引起的包的数目，降低网络阻塞
+    　　2）通过减少TCP开启和关闭引起的包的数目，降低网络阻塞
 
 * HTTP长连接的缺点：
 
