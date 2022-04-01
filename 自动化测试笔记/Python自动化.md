@@ -689,7 +689,57 @@ print(args2.path+args2.file)  # 在命令行输入python argument.py --path=c:/w
 
 
 
-### 14、pip安装第三方库
+### 14、py文件输出命令至操作系统命令行执行
+
+* https://cloud.tencent.com/developer/article/1445388
+
+#### 1、os.system()
+
+执行操作系统的命令，将结果输出到屏幕，只返回命令的执行状态（0：成功，非 0 ： 失败）
+
+~~~
+import os
+>>> a = os.system("df -Th")
+Filesystem   Type  Size Used Avail Use% Mounted on
+/dev/sda3   ext4  1.8T 436G 1.3T 26% /
+>>> a
+0     # 0 表示执行成功
+# 执行错误的命令
+>>> res = os.system("list")
+sh: list: command not found
+>>> res
+32512    # 返回非 0 表示执行错误
+~~~
+
+
+
+#### 2、 os.popen()
+
+将结果保存在内存当中，可以用**read()**方法读取出来
+
+~~~
+>>> import os
+>>> s = os.popen('ls -l')
+>>> print(s)
+<os._wrap_close object at 0x7ff7b3c7d5f8>
+>>> s.read()
+'total 8\n-rw-------. 1 root root 1962 Feb 10 22:48 anaconda-ks.cfg\ndrwxr-xr-x. 2 root root    6 Feb 10 22:51 Desktop\ndrwxr-xr-x. 2 root root    6 Feb 10 22:51 Documents\ndrwxr-xr-x. 2 root root    6 Feb 10 22:51 Downloads\n-rw-r--r--. 1 root root 2010 Feb 10 22:49 initial-setup-ks.cfg\ndrwxr-xr-x. 2 root root    6 Feb 10 22:51 Music\ndrwxr-xr-x. 2 root root    6 Feb 10 22:51 Pictures\ndrwxr-xr-x. 2 root root    6 Feb 10 22:51 Public\ndrwxr-xr-x. 2 root root    6 Feb 10 22:51 Templates\ndrwxr-xr-x. 2 root root    6 Feb 10 22:51 Videos\n'
+
+~~~
+
+
+
+#### 3、subprocess.run()
+
+~~~
+>>> subprocess.run(["ls", "-l", "/dev/null"])
+crw-rw-rw-  1 root  wheel    3,   2  5  4 13:34 /dev/null
+CompletedProcess(args=['ls', '-l', '/dev/null'], returncode=0)
+~~~
+
+
+
+### 15、pip安装第三方库
 
 #### pip命令常见操作
 
