@@ -1026,22 +1026,21 @@ HTTP响应正文的编码，它的值可能是从HTTP响应头部或正文中解
    * data，选填，请求参数
    * json，选填，请求参数
    * kwargs，选填关键字参数，可以传入headers、cookies等
-
 2. 请求参数，data和json的区别
 
    * 不管是json是str还是dict，如果不指定 headers中的content-type，默认为application/json
    * data为dict时，如果不指定content-type，默认为applicaton/x-www-form-urlencoded，相当于普通form表单的形式
    * data为str时，如果不指定content-type，默认为application/json
-
 3. post请求参数到底是传data还是json，这时候我们要看请求头里的content-type类型
 
    1. 如果请求头中content-type为application/json,  为json形式，post请求使用json参数。
-
    2. 如果请求头中content-type为application/x-www-form-urlencoded，为表单形式，post请求时使用使用data参数。
-
    3. 如果请求类型为application/json，我偏要传入data参数呢？
 
       * 清楚中传入请求头，header = {"content-type":"application/json"}
+   4. 请求头中的content-type和响应头中的content-type有什么区别：
+      * 请求头中 (如POST 或 PUT)，Content-Type字段用于客户端告诉服务器实际发送的数据类型
+      * 响应头中，浏览器会根据 Content-Type 判断响应体的资源类型，然后根据不同文件类型做出不同的展示
 * 需要将字典类型数据转换为json字符串。
 
 
