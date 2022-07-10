@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="../static/jquery-1.12.4.min.js"></script>
+    <title>Title</title>
+</head>
+<body>
+<!--上传文件操作，form标签必须增加一个属性enctype。否则不会往后台传输文件-->
+<form action="/upload" method="post" enctype="multipart/form-data">
+<!-- 将上传的文件保存在变量file_name里面，后端flask可以通过request。files['file_name']来获取文件-->
+    <input type="file" name="file_name">
+    <input type="submit">
+</form>
+
+<p onclick="send_ajax()">点击发送</p>
+<script>
+    function send_ajax() {
+        $.ajax({
+            url: 'http://127.0.0.1:5000/',
+            data: JSON.stringify({username: 'yeze', pwd: '123'}),//把字符串格式书转化成json格式
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (data) {
+                alert('successful')
+            }
+        })
+    }
+</script>
+
+</body>
+</html>

@@ -18,7 +18,7 @@ class UserView(MethodView):
     def delete(self, project_id):
         return f'delete {project_id}'
 
-# 此种形式(参数通过url地址传入)，注意get请求分为有参数和无参数的，所以路由要分开注册
+# 此种形式(参数通过url地址传入)，注意get请求路由分为有参数和无参数的，所以路由要分开注册
 f = UserView.as_view('user')
 app.add_url_rule('/projects/<project_id>/', strict_slashes=False, view_func=f, methods=['GET', 'POST', 'PUT', 'DELETE'])
 

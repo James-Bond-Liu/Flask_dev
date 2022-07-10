@@ -10,8 +10,8 @@ app = Flask(__name__)
 
 @app.route('/', methods=['POST', 'GET'], endpoint='set_for_if_flash')
 # route源码只有两个参数，rule-路由地址，options-关键字参数（methods、endpoint、defaults、redirect_to等）
-# methods 只当请求方法
-# endpoint 指定端点的名称，默认为视图函数的名称
+# methods 指定请求方法
+# endpoint 指定端点的名称，默认为视图函数的名称。可以通过url_map方法确认
 def index():
     return 'hello, 张景小仙女'
 print(app.url_map)

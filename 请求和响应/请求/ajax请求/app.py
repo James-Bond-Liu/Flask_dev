@@ -13,6 +13,7 @@ def index():
         print(request.user_agent)
         print(request.environ)
         print(request.values)
+        print(request.method)
         return '成功'
 
 # 如果是Ajax请求，前端的请求头里会默认添加X-Requested-With: XMLHttpRequest

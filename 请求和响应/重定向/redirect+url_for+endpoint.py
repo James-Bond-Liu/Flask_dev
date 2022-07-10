@@ -3,7 +3,7 @@ from werkzeug.routing import Rule
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET', 'PSOT'])
+@app.route('/', methods=['GET', 'POST'])
 def index():
     if request.args.get('username') is None:
         # redirect 中使用url_for(endpoint名, **values) 进行重定向，values参数是路由规则(Rule类from werkzeug.routing import Rule)中的参数

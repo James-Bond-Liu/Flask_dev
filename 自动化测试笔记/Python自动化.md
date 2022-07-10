@@ -188,7 +188,7 @@ print(one)  # {'name': 'tiger', 'age': 4, 'address': '中国成都'}
 
 ​	一个条件语句里面，只能有一个if，一个else且else后面不能跟条件。
 
-```
+```python
 if 条件：
 	子语句
 elif 条件：
@@ -199,6 +199,16 @@ elif 条件：
 else:
 	子语句
 ```
+
+​	没有elif判断语句的另一种写法
+
+~~~python
+真 if 条件 else 假
+
+'成年' if age > 18 else '未成年'
+~~~
+
+
 
 #### 2.input（）函数
 
@@ -662,7 +672,7 @@ for i in sys.argv:
   args1 = parser1.parse_args()  # args类似于python的字典
   
   # 使用 arg.参数名来提取传入的参数
-  print(args1)  # 在命令行中输入 python argument.py 5，输出 5
+  print(args1)  # 在命令行中输入 python argument.py 5  # 输出 5
   ~~~
 
   

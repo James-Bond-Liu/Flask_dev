@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 # url 和 视图函数  之间有一个绑定关系，叫端点endpoint
 
-@app.route('/', methods=['GET', 'PSOT'])
+@app.route('/', methods=['GET', 'POST'])
 def index():
     if request.args.get('username') is None:
         # 直接在redirect中传入url进行重定向

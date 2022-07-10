@@ -27,7 +27,7 @@ def getcase2():
 
 @app.route('/', methods=['POST', 'GET'], endpoint='set_for_if_flash')
 def index():
-    return 'hello, 张景小仙女'
+    return 'hello, welcome'
 print(app.url_map)
 
 # redirect指定重定向

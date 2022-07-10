@@ -23,7 +23,8 @@ print(app.url_map)  # Map([<Rule '/static/<filename>' (GET, OPTIONS, HEAD) -> st
 # Map([<Rule '/cases' (GET, OPTIONS, HEAD) -> getcase1>, <Rule '/static/<filename>' (GET, OPTIONS, HEAD) -> static>]) 注册路由后增加一条绑定关系。URL即/cases，端点名即getcase1，(GET, OPTIONS, HEAD)为注册时添加的参数
 
 # 集中注册--项目很大时使用
-# app.add_url_rule('/cases/', view_func=getcase1)  # 参数1为配置的路由,参数2为和路由相关联的视图函数名,注意函数不要加()
+#app.add_url_rule(rule = '/', view_func=getcase2)
+# app.add_url_rule(rule = '/cases/', view_func=getcase1)  # 参数1为配置的路由,参数2为和路由相关联的视图函数名,注意函数不要加()
 
 if __name__ == '__main__':
     app.run(debug=True)

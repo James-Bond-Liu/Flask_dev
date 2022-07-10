@@ -64,7 +64,7 @@ requirements.txt文件记录了当前程序的所有依赖包及版本号，其�
 | 命令                                          | 释义                                                   |
 | --------------------------------------------- | ------------------------------------------------------ |
 | pipenv  --rm                                  | 删除虚拟环境                                           |
-| pipenv  --whree                               | 列出本地工程路径（前提路径下必须有虚拟环境）           |
+| pipenv  --where                               | 列出本地工程路径（前提路径下必须有虚拟环境）           |
 | pipenv  --venv                                | 列出虚拟环境路径                                       |
 | pipenv  --py                                  | 列出虚拟环境的Python可执行文件                         |
 | pipenv  graph                                 | 查看包依赖                                             |
@@ -1275,8 +1275,11 @@ CPU和多任务的关系
 
 python的 thread模块是比较底层的模块， python的 threading模块是对 thread做了一些包装的，可以更加方便的被使用
 
-* 创建线程对象：threading.Thread（ target=func）
+* 创建线程对象：threading.Thread（ target=func, args=(), kwargs=None, name=None）
 * 参数 target指定线程执行的任务（函数）
+* args：目标函数target所需要的参数，已元组形式传入
+* kwargs：目标函数target所需要的参数，以关键字形式传入
+* name：线程名称
 
 
 
@@ -3363,7 +3366,7 @@ flask哲学，/cases/和/cases/ 是两个不同的URL
 
 访问URL触发对应的视图函数。函数是没有主动调用的，在哪里使用呢？
 之前的最小服务器示例。
-保存在se1f.ur1_map（）
+保存在self.ur1_map（）
 
 装饰器注册源码解析：
 
@@ -3377,7 +3380,7 @@ def route(self, rule: str, **options: t.Any) -> t.Callable:
 return decorator
 ~~~
 
-源码阅读app.add_url_rule('/hello/'， view_func=index)
+源码阅读app.add_url_rule(rule = '/hello/'， view_func=index)
 
 
 
@@ -3396,7 +3399,7 @@ app.url_map是用来存储每一个绑定关系的。类似字典形式存储。
 **app.route()的option参数使用了werkzeug的Rule类。**
 
 * endpoint进行URL构建的时候会有用。endpoint的作用是在url和view中间设置一个桥梁。 
-* emthods，默认有get,head,option
+* methods，默认有get,head,option
 * redirect_to，重定向
   * 方法一：在注册路由时进行重定向，@app.route(redirect_to='/')，此种方式重定向不会执行该路由下的视图函数。
   * 方法二：通过在视图函数下方return redirect(重定向的url)。此种方法会执行该视图函数，且redirect需要导入方法。
@@ -3526,7 +3529,7 @@ method_view也是类视图的一种
 from flask import Flask,request
 from flask.views import View, MethodView
 
-# methoView也是类视图的一种
+# methodView也是类视图的一种
 app = Flask(__name__)
 
 class UserView(MethodView):
@@ -3646,9 +3649,9 @@ if __name__ == '__main__':
 
 * request.method：保存前端的请求方式
 
-* request.form：form表单中传递过来的值，使用request.form中拿到（post）
+* request.form：form表单中传递过来的值，使用request.form中拿到（post请求）
 
-* request.args：保存的是url中传递的参数（get）
+* request.args：保存的是url中？后传递的参数（get请求）
 
 * request.args与request.form的区别就是：
   * request.args是获取url中的参数，request.form是获取form表单中的参数
@@ -3675,7 +3678,7 @@ if __name__ == '__main__':
 
 * stream：在可知的mimetype下，如果进来的表单数据无法解码，会没有任何改动的保存到这个stream以供使用。很多时候，当请求的数据转换为string时，使用data是最好的方式。这个stream值返回数据一次。
 
-* request.headres ：用来获取本次请求的请求头，字典类型
+* request.headers ：用来获取本次请求的请求头，字典类型
 
 * request.data： 如果数据类型是flask无法处理的mime type，flask就会将数据变成字符串存在data里
 
@@ -3886,7 +3889,7 @@ b = make_response(a,	201,	headers={'x':'wofo'})
 ~~~python
 a = json.dumps({'user':'yeze'})
 b = make_response()
-b.response = a
+b.data = a
 b.status = '201'  
 b.headers = {'x':'wofo'}
 
@@ -4029,8 +4032,8 @@ Content-Type代表发送端（客户端|服务器）发送的实体数据的数�
 
 重定向有两种方式
 
-* redirect("/new/url")
-* redirect(url_for("endpoint"))
+* redirect("/new/url")——直接指定路由
+* redirect(url_for("endpoint"))——通过指定端点名来重定向
   * url_for(端点名)，url_for函数作用，通过传入的端点名称构造一个URL出来
 
 **使用url_for的形式进行重定向更好， url_for可以添加参数**
@@ -4046,7 +4049,7 @@ def index():
     if request.args.get('username') is None:
         # redirect 中使用url_for(endpoint名, **values) 进行重定向，values参数是路由规则(Rule类from werkzeug.routing import Rule)中的参数
         return redirect(url_for('hhh', username='panda', pwd='dog'))
-        # url_for在重定向时可以添加关键字参数，添加测关键字参数是重定向至URL的参数，原路由没有关系。
+        # url_for在重定向时可以添加关键字参数，添加的关键字参数是重定向至URL的参数，和原路由没有关系。
         # 此重定向后，前端访问“127.0.0.1:5000/”，则会重定向至“http://127.0.0.1:5000/login?username=panda&pwd=dog”
     return 'hello'
 
@@ -4129,7 +4132,7 @@ def index():
 ##### 3、自定义错误，然后抛出raise
 
 ~~~python
-class NotLoginException(Exception):
+class NotLoginException(Exception):  # 自定义错误类型，必须继承错误类型的基类
     pass
 
 @app.errorhandler(NotLoginException)
@@ -5826,12 +5829,12 @@ class Project(DB):
     table = 'project_info'
 
     def list_all(self):
-        self.query(f'SELECT * FROM {self.table}')
+        self.query(f'SELECT * FROM {Project.table}')
         res = self.conn.fetchall()
         return res
 
     def get_by_id(self, id):
-        self.query(f'SELECT * FROM {self.table} WHERE id={id}')
+        self.query(f'SELECT * FROM {Project.table} WHERE id={id}')
         res = self.conn.fetone()
         return res
 ~~~
@@ -6073,12 +6076,11 @@ http://www.pythondoc.com/flask-sqlalchemy/binds.html
 下面的配置声明了三个数据库连接。特殊的默认值和另外两个分别名为 users`（用于用户）和 `appmeta 连接到一个提供只读访问应用内部数据的 sqlite 数据库）:
 
 ~~~python
-app.config['SQLALCHEMY_DATABASE_URI'] ='sqlite:////d:/demo1.db'
+app.config['SQLALCHEMY_DATABASE_URI'] ='sqlite:////d:/demo1.db'  # 默认链接
 app.config['SQLALCHEMY_BINDS'] = {
 	'users':   'sqlite:////d:/demo1.db',
-	'main':    'mysql+pymysql://root:@localhost:3306/demo'
-}
-
+	'appmeta':    'mysql+pymysql://root:@localhost:3306/demo'
+}  # 特定的链接引擎
 ~~~
 
 
@@ -6101,7 +6103,7 @@ class User(db.Model):
 
 然后再在数据模型中指定用哪个数据库（即进行绑定），然后我们在初始化数据库创建数据模型的时候就会自动去找到这个数据库进行创建。
 
-在数据模型类中指定这个绑定binds，当在初始化或者说创建这个数据库时则只能通过这个绑定binds来创建数据库。
+如果在数据模型类中指定这个绑定binds，当在初始化或者说创建这个数据库时则只能通过这个绑定binds来创建数据库。
 
 
 
@@ -6119,7 +6121,7 @@ with app.app_context() as ctx:
 
 #### 三、数据库模型定义的参数说明
 
-在 ORM 中, 模型一般是一个 Python 类, 类对应表，类中的属性对应数据库中的表的字段。Flaks-SQLAlchemy 创建的数据库实例为模型提供了一个基类以及一些列辅助类和辅助函数, 可用于定义模型的结构。
+在 ORM 中, 模型一般是一个 Python 类, 类对应表，类中的属性对应数据库中的表的字段。Flask-SQLAlchemy 创建的数据库实例为模型提供了一个基类以及一些列辅助类和辅助函数, 可用于定义模型的结构。
 
 https://www.cnblogs.com/jinjidedale/p/6180262.html
 
