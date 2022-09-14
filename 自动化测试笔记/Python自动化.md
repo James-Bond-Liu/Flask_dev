@@ -1316,6 +1316,22 @@ header = {'Connection':'keep-alive', 'Keep-Alive':timeout=60}  # 设置HTTP长�
 
 
 
+9.HTTPS请求
+
+* 一搬发起https请求会报安全警告
+
+  ~~~
+  # 禁用安全请求警告
+  import requests
+  
+  from requests.packages.urllib3.exceptions import InsecureRequestWarning
+  requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+  
+  
+  ~~~
+
+  
+
 
 
 
